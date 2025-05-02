@@ -1,0 +1,650 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
+
+} 
+
+// User system with role-based access
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  username        String    @unique
+  passwordHash    String
+  name            String
+  surname         String
+  address         String?
+  phone           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  isActive        Boolean   @default(true)
+  role            UserRole
+  verifiedAt      DateTime?
+  lastLogin       DateTime?
+  
+  // User profile based on role
+  admin           Admin?
+  principal       Principal?
+  teacher         Teacher?
+  parent          Parent?
+  
+  // Shared features across roles
+  sentMessages    Message[]        @relation("SentMessages")
+  receivedMessages Message[]       @relation("ReceivedMessages")
+  notifications   Notification[]
+  deviceTokens    DeviceToken[]
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  PRINCIPAL
+  TEACHER
+  PARENT
+}
+
+// System administrator
+model Admin {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [id], references: [id], onDelete: Cascade)
+  
+  // Admin manages schools
+  schools     School[]
+}
+
+// Schools
+model School {
+  id              String    @id @default(uuid())
+  name            String
+  address         String
+  city            String
+  state           String
+  country         String
+  postalCode      String?
+  phone           String?
+  email           String?
+  website         String?
+  logoUrl         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  isActive        Boolean   @default(true)
+  isVerified      Boolean   @default(false)
+  verifiedAt      DateTime?
+  
+  // School relationships
+  adminId         String?
+  admin           Admin?           @relation(fields: [adminId], references: [id])
+  principals      Principal[]
+  teachers        Teacher[]
+  parents         Parent[]
+  students        Student[]
+  grades          Grade[]
+  classes         Class[]
+  subjects        Subject[]
+  academicYears   AcademicYear[]
+  academicCalendars AcademicCalendar[]
+  announcements   Announcement[]
+  events          Event[]
+  feeStructures   FeeStructure[]
+  payments        Payment[]
+  
+  // School subscription/billing information
+  subscription    Subscription?
+}
+
+// School principal (admin role for a specific school)
+model Principal {
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [id], references: [id], onDelete: Cascade)
+  imageUrl        String?
+  
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Principal manages academic content
+  createdCalendars  AcademicCalendar[]
+  
+  // Approvals
+  approvals       Approval[] @relation("ApprovedBy")
+}
+
+// Teacher
+model Teacher {
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [id], references: [id], onDelete: Cascade)
+  bloodType       String?
+  sex             UserSex?
+  imageUrl        String?
+  birthday        DateTime?
+  bio             String?
+  qualifications  String?
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Approval status
+  approval        Approval? @relation("TeacherApproval")
+  
+  // Teacher relationships
+  subjects        Subject[]       @relation("TeacherSubjects")
+  supervisedClasses Class[]       @relation("ClassSupervisor")
+  lessons         Lesson[]
+  attendance      Attendance[]    @relation("AttendanceRecorder")
+  examQuestions   ExamQuestion[]
+  assignments     Assignment[]
+  uploadedResults Result[]        @relation("ResultUploader")
+}
+
+// Parent
+model Parent {
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [id], references: [id], onDelete: Cascade)
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Parent relationships
+  children        Student[]
+  payments        Payment[]
+}
+
+// Student
+model Student {
+  id              String    @id @default(uuid())
+  registrationNumber String  @unique
+  name            String
+  surname         String
+  address         String?
+  imageUrl        String?
+  bloodType       String?
+  sex             UserSex?
+  birthday        DateTime?
+  
+  // School and parent relationships
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  parentId        String
+  parent          Parent    @relation(fields: [parentId], references: [id])
+  
+  // Academic relationships
+  classId         String?
+  class           Class?    @relation(fields: [classId], references: [id])
+  gradeId         String?
+  grade           Grade?    @relation(fields: [gradeId], references: [id])
+  
+  // Student records
+  attendances     Attendance[]
+  results         Result[]
+}
+
+// Approval model for centralizing approval logic
+model Approval {
+  id              String    @id @default(uuid())
+  isApproved      Boolean   @default(false)
+  approvedAt      DateTime?
+  approvedById    String?
+  approvedBy      Principal? @relation("ApprovedBy", fields: [approvedById], references: [id])
+  
+  // Relationships
+  teacher         Teacher?  @relation("TeacherApproval", fields: [teacherId], references: [id])
+  teacherId       String?   @unique
+  examQuestion    ExamQuestion? @relation("ExamQuestionApproval", fields: [examQuestionId], references: [id])
+  examQuestionId  String?   @unique
+  result          Result?   @relation("ResultApproval", fields: [resultId], references: [id])
+  resultId        String?   @unique
+}
+
+// Grade levels in a school
+model Grade {
+  id              String    @id @default(uuid())
+  name            String
+  level           Int
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Grade relationships
+  classes         Class[]
+  students        Student[]
+  
+  @@unique([schoolId, level])
+}
+
+// Classes within a grade
+model Class {
+  id              String    @id @default(uuid())
+  name            String
+  capacity        Int
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Class relationships
+  gradeId         String
+  grade           Grade     @relation(fields: [gradeId], references: [id])
+  supervisorId    String?
+  supervisor      Teacher?  @relation("ClassSupervisor", fields: [supervisorId], references: [id])
+  
+  // Class content
+  students        Student[]
+  lessons         Lesson[]
+  timetables      Timetable[]
+  events          Event[]   @relation("ClassEvents")
+  announcements   Announcement[] @relation("ClassAnnouncements")
+  
+  @@unique([schoolId, name])
+}
+
+// Academic subjects
+model Subject {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Subject relationships
+  teachers        Teacher[] @relation("TeacherSubjects")
+  lessons         Lesson[]
+  
+  @@unique([schoolId, name])
+}
+
+// Lessons (instances of subjects taught by teachers)
+model Lesson {
+  id              String    @id @default(uuid())
+  name            String
+  
+  // Relationships
+  subjectId       String
+  subject         Subject   @relation(fields: [subjectId], references: [id])
+  teacherId       String
+  teacher         Teacher   @relation(fields: [teacherId], references: [id])
+  classId         String
+  class           Class     @relation(fields: [classId], references: [id])
+  
+  // Lesson content
+  timetableSlots  TimetableSlot[]
+  examQuestions   ExamQuestion[]
+  assignments     Assignment[]
+  attendances     Attendance[]
+}
+
+// Academic years
+model AcademicYear {
+  id              String    @id @default(uuid())
+  name            String
+  startDate       DateTime
+  endDate         DateTime
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Academic year content
+  academicCalendars AcademicCalendar[]
+  
+  @@unique([schoolId, name])
+}
+
+// Academic calendar
+model AcademicCalendar {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  document        String?   // URL to document
+  
+  // Relationships
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  academicYearId  String
+  academicYear    AcademicYear @relation(fields: [academicYearId], references: [id])
+  createdById     String?
+  createdBy       Principal? @relation(fields: [createdById], references: [id])
+  
+  // Calendar items
+  calendarItems   CalendarItem[]
+}
+
+// Calendar items
+model CalendarItem {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  startDate       DateTime
+  endDate         DateTime
+  itemType        CalendarItemType
+  
+  // Relationships
+  academicCalendarId String
+  academicCalendar AcademicCalendar @relation(fields: [academicCalendarId], references: [id])
+}
+
+// Class timetable
+model Timetable {
+  id              String    @id @default(uuid())
+  name            String
+  effectiveFrom   DateTime
+  effectiveTo     DateTime?
+  isActive        Boolean   @default(true)
+  
+  // Relationships
+  classId         String
+  class           Class     @relation(fields: [classId], references: [id])
+  
+  // Timetable slots
+  slots           TimetableSlot[]
+}
+
+// Timetable slots
+model TimetableSlot {
+  id              String    @id @default(uuid())
+  day             Day
+  startTime       DateTime
+  endTime         DateTime
+  
+  // Relationships
+  timetableId     String
+  timetable       Timetable @relation(fields: [timetableId], references: [id])
+  lessonId        String
+  lesson          Lesson    @relation(fields: [lessonId], references: [id])
+}
+
+// Exam questions
+model ExamQuestion {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  documentUrl     String?   // URL to question document
+  
+  // Relationships
+  lessonId        String
+  lesson          Lesson    @relation(fields: [lessonId], references: [id])
+  teacherId       String
+  teacher         Teacher   @relation(fields: [teacherId], references: [id])
+  
+  // Approval status
+  approval        Approval? @relation("ExamQuestionApproval")
+  
+  // Exams
+  exams           Exam[]
+}
+
+// Exam instances
+model Exam {
+  id              String    @id @default(uuid())
+  title           String
+  startTime       DateTime
+  endTime         DateTime
+  
+  // Relationships
+  examQuestionId  String
+  examQuestion    ExamQuestion @relation(fields: [examQuestionId], references: [id])
+  
+  // Results
+  results         Result[]
+}
+
+// Assignments
+model Assignment {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  documentUrl     String?   // URL to assignment document
+  startDate       DateTime
+  dueDate         DateTime
+  
+  // Relationships
+  lessonId        String
+  lesson          Lesson    @relation(fields: [lessonId], references: [id])
+  teacherId       String
+  teacher         Teacher   @relation(fields: [teacherId], references: [id])
+  
+  // Results
+  results         Result[]
+}
+
+// Student results
+model Result {
+  id              String    @id @default(uuid())
+  score           Int
+  feedback        String?
+  documentUrl     String?   // URL to result document
+  
+  // Result type
+  examId          String?
+  exam            Exam?     @relation(fields: [examId], references: [id])
+  assignmentId    String?
+  assignment      Assignment? @relation(fields: [assignmentId], references: [id])
+  
+  // Relationships
+  studentId       String
+  student         Student   @relation(fields: [studentId], references: [id])
+  
+  // Upload information
+  uploadedById    String
+  uploadedBy      Teacher   @relation("ResultUploader", fields: [uploadedById], references: [id])
+  uploadedAt      DateTime  @default(now())
+  
+  // Approval status
+  approval        Approval? @relation("ResultApproval")
+}
+
+// Attendance records
+model Attendance {
+  id              String    @id @default(uuid())
+  date            DateTime  @default(now())
+  present         Boolean
+  note            String?
+  
+  // Relationships
+  studentId       String
+  student         Student   @relation(fields: [studentId], references: [id])
+  lessonId        String
+  lesson          Lesson    @relation(fields: [lessonId], references: [id])
+  recordedById    String
+  recordedBy      Teacher   @relation("AttendanceRecorder", fields: [recordedById], references: [id])
+}
+
+// Fee structure
+model FeeStructure {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  amount          Decimal   @db.Decimal(10, 2)
+  dueDate         DateTime?
+  gracePeriod     Int?      // Days
+  lateFee         Decimal?  @db.Decimal(10, 2)
+  academicYear    String
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Payments
+  payments        Payment[]
+}
+
+// Payment records
+model Payment {
+  id              String    @id @default(uuid())
+  amount          Decimal   @db.Decimal(10, 2)
+  status          PaymentStatus
+  paymentMethod   PaymentMethod
+  transactionId   String?
+  paymentDate     DateTime  @default(now())
+  
+  // Relationships
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  parentId        String
+  parent          Parent    @relation(fields: [parentId], references: [id])
+  feeStructureId  String
+  feeStructure    FeeStructure @relation(fields: [feeStructureId], references: [id])
+  
+  // Receipt information
+  receiptNumber   String?   @unique
+  receiptUrl      String?   // URL to receipt document
+}
+
+// School subscription
+model Subscription {
+  id              String    @id @default(uuid())
+  plan            String
+  startDate       DateTime  @default(now())
+  endDate         DateTime?
+  isActive        Boolean   @default(true)
+  lastBillingDate DateTime  @default(now())
+  nextBillingDate DateTime?
+  amount          Decimal   @db.Decimal(10, 2)
+  
+  // School relationship
+  schoolId        String    @unique
+  school          School    @relation(fields: [schoolId], references: [id])
+}
+
+// Messages
+model Message {
+  id              String    @id @default(uuid())
+  content         String
+  sentAt          DateTime  @default(now())
+  readAt          DateTime?
+  
+  // Sender/receiver relationships
+  senderId        String
+  sender          User      @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId      String
+  receiver        User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+// Notifications
+model Notification {
+  id              String    @id @default(uuid())
+  title           String
+  content         String
+  type            NotificationType
+  createdAt       DateTime  @default(now())
+  readAt          DateTime?
+  
+  // User relationship
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+}
+
+// Events
+model Event {
+  id              String    @id @default(uuid())
+  title           String
+  description     String
+  location        String?
+  startTime       DateTime
+  endTime         DateTime
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Class relationship (optional)
+  classId         String?
+  class           Class?    @relation("ClassEvents", fields: [classId], references: [id])
+}
+
+// Announcements
+model Announcement {
+  id              String    @id @default(uuid())
+  title           String
+  content         String
+  date            DateTime  @default(now())
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Class relationship (optional)
+  classId         String?
+  class           Class?    @relation("ClassAnnouncements", fields: [classId], references: [id])
+}
+
+// Device tokens for push notifications
+model DeviceToken {
+  id              String    @id @default(uuid())
+  token           String    @unique
+  deviceType      DeviceType
+  lastUsed        DateTime  @default(now())
+  
+  // User relationship
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+}
+
+// Enums
+enum UserSex {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum Day {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum CalendarItemType {
+  HOLIDAY
+  EXAM_PERIOD
+  TERM_START
+  TERM_END
+  SPECIAL_EVENT
+  SPORTS_DAY
+  PARENT_TEACHER_MEETING
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  MOBILE_MONEY
+  CASH
+  OTHER
+}
+
+enum NotificationType {
+  ATTENDANCE
+  ASSIGNMENT
+  EXAM
+  RESULT
+  PAYMENT
+  ANNOUNCEMENT
+  EVENT
+  MESSAGE
+  GENERAL
+}
+
+enum DeviceType {
+  IOS
+  ANDROID
+  WEB
+}

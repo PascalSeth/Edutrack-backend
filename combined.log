@@ -1,0 +1,13 @@
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:22:51.952Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:24:14.140Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:24:40.701Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:28:22.902Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:32:08.803Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:35:44.325Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:40:52.017Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:48:57.864Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:49:09.936Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-05-02T16:53:17.030Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:53:55.487Z"}
+{"level":"info","limit":10,"message":"Users retrieved","page":1,"timestamp":"2025-05-02T16:54:02.680Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-05-02T16:56:07.642Z"}

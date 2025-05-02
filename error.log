@@ -1,0 +1,1 @@
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-05-02T16:53:17.030Z"}
