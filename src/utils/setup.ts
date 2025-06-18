@@ -19,7 +19,6 @@ export const logger = winston.createLogger({
 if (process.env.NODE_ENV !== "production") {
   logger.add(new winston.transports.Console({ format: winston.format.simple() }))
 }
-
 // Enhanced Authentication Middleware with multi-tenant support
 export interface AuthRequest extends Request {
   user?: {
