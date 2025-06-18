@@ -20,9 +20,10 @@ const registerSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
   name: z.string().min(1, "Name is required"),
   surname: z.string().min(1, "Surname is required"),
-  role: z.enum(["SCHOOL_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"], { message: "Invalid role" }),
+  role: z.enum(["SUPER_ADMIN", "SCHOOL_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"], { message: "Invalid role" }),
   phone: z.string().optional(),
   address: z.string().optional(),
+  // Make schoolId optional but validate it based on role
   schoolId: z.string().uuid("Invalid school ID").optional(),
   qualifications: z.string().optional(),
   bio: z.string().optional(),
@@ -36,7 +37,19 @@ const registerSchema = z.object({
       }),
     )
     .optional(),
-})
+}).refine(
+  (data) => {
+    // SUPER_ADMIN doesn't need schoolId, all others do
+    if (data.role === "SUPER_ADMIN") {
+      return true; // No schoolId validation needed for SUPER_ADMIN
+    }
+    return data.schoolId !== undefined; // All other roles require schoolId
+  },
+  {
+    message: "School ID is required for all roles except SUPER_ADMIN",
+    path: ["schoolId"],
+  }
+)
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email").min(1, "Email is required"),
@@ -101,7 +114,7 @@ export const register = async (req: AuthRequest, res: Response) => {
       return res.status(409).json({ message: "Email or username already exists" })
     }
 
-    // Validate school exists if schoolId provided
+    // Validate school exists if schoolId provided (not needed for SUPER_ADMIN)
     let school = null
     if (data.schoolId) {
       school = await prisma.school.findUnique({
@@ -134,6 +147,11 @@ export const register = async (req: AuthRequest, res: Response) => {
 
       // Create role-specific records
       switch (data.role) {
+        case "SUPER_ADMIN":
+          // SUPER_ADMIN doesn't need any additional role-specific records
+          // and doesn't need to be tied to a specific school
+          break
+
         case "SCHOOL_ADMIN":
           if (!data.schoolId) throw new Error("schoolId is required for School Admin")
           await tx.schoolAdmin.create({
@@ -198,7 +216,7 @@ export const register = async (req: AuthRequest, res: Response) => {
       return newUser
     })
 
-    // Generate tokens with school context
+    // Generate tokens with school context (SUPER_ADMIN won't have school context)
     let tokenPayload: JwtPayload = { id: user.id, role: user.role }
     if (school) {
       tokenPayload = {
@@ -220,14 +238,18 @@ export const register = async (req: AuthRequest, res: Response) => {
     })
 
     // Send welcome notification
+    const welcomeMessage = data.role === "SUPER_ADMIN" 
+      ? "Welcome to EduTrack! Your Super Admin account has been created successfully."
+      : `Welcome ${user.name}! Your account has been created successfully. ${
+          ["PRINCIPAL", "TEACHER", "PARENT"].includes(user.role)
+            ? "Your account is pending approval from the school administration."
+            : ""
+        }`
+
     await createNotification(
       user.id,
       "Welcome to EduTrack!",
-      `Welcome ${user.name}! Your account has been created successfully. ${
-        ["PRINCIPAL", "TEACHER"].includes(user.role)
-          ? "Your account is pending approval from the school administration."
-          : ""
-      }`,
+      welcomeMessage,
       "GENERAL",
     )
 
@@ -235,6 +257,7 @@ export const register = async (req: AuthRequest, res: Response) => {
       userId: user.id,
       role: user.role,
       schoolId: data.schoolId,
+      isSuperAdmin: user.role === "SUPER_ADMIN",
     })
 
     res.status(201).json({
@@ -244,6 +267,7 @@ export const register = async (req: AuthRequest, res: Response) => {
         email: user.email,
         role: user.role,
         needsApproval: ["PRINCIPAL", "TEACHER", "PARENT"].includes(user.role),
+        isSuperAdmin: user.role === "SUPER_ADMIN",
       },
       accessToken,
       refreshToken,
@@ -291,7 +315,11 @@ export const login = async (req: AuthRequest, res: Response) => {
     let approvalStatus = null
     let school = null
 
-    if (user.principal) {
+    // SUPER_ADMIN doesn't have school associations
+    if (user.role === "SUPER_ADMIN") {
+      school = null
+      approvalStatus = "APPROVED" // SUPER_ADMIN is automatically approved
+    } else if (user.principal) {
       school = user.principal.school
       approvalStatus = user.principal.approval?.status || "PENDING"
     } else if (user.teacher) {
@@ -311,7 +339,7 @@ export const login = async (req: AuthRequest, res: Response) => {
       })
     }
 
-    // Generate tokens with school context
+    // Generate tokens with school context (SUPER_ADMIN won't have school context)
     let tokenPayload: JwtPayload = { id: user.id, role: user.role }
     if (school) {
       tokenPayload = {
@@ -342,6 +370,7 @@ export const login = async (req: AuthRequest, res: Response) => {
       userId: user.id,
       role: user.role,
       schoolId: school?.id,
+      isSuperAdmin: user.role === "SUPER_ADMIN",
     })
 
     res.status(200).json({
@@ -356,6 +385,7 @@ export const login = async (req: AuthRequest, res: Response) => {
         schoolName: school?.name,
         approvalStatus,
         profileImageUrl: user.profileImageUrl,
+        isSuperAdmin: user.role === "SUPER_ADMIN",
       },
       accessToken,
       refreshToken,
@@ -406,12 +436,14 @@ export const refreshToken = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: "User not found" })
     }
 
-    // Update school context if needed
+    // Update school context if needed (SUPER_ADMIN won't have school context)
     let school = null
-    if (user.schoolAdmin) school = user.schoolAdmin.school
-    else if (user.principal) school = user.principal.school
-    else if (user.teacher) school = user.teacher.school
-    else if (user.parent) school = user.parent.school
+    if (user.role !== "SUPER_ADMIN") {
+      if (user.schoolAdmin) school = user.schoolAdmin.school
+      else if (user.principal) school = user.principal.school
+      else if (user.teacher) school = user.teacher.school
+      else if (user.parent) school = user.parent.school
+    }
 
     let tokenPayload: JwtPayload = { id: user.id, role: user.role }
     if (school) {
@@ -432,7 +464,10 @@ export const refreshToken = async (req: AuthRequest, res: Response) => {
       data: { lastUsed: new Date() },
     })
 
-    logger.info("Access token refreshed", { userId: user.id })
+    logger.info("Access token refreshed", { 
+      userId: user.id,
+      isSuperAdmin: user.role === "SUPER_ADMIN"
+    })
     res.status(200).json({
       message: "Token refreshed successfully",
       accessToken,
