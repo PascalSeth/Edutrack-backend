@@ -2,7 +2,7 @@ import { Router } from 'express';
 import {
   getSchools,
   getSchoolById,
-  createSchool,
+  registerSchool,
   updateSchool,
   deleteSchool,
 } from '../controllers/schoolController';
@@ -17,7 +17,7 @@ router.get('/', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL', 'TEACHER', 'PARENT']
 router.get('/:id', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL', 'TEACHER', 'PARENT']), getSchoolById);
 
 // Create school (SUPER_ADMIN only)
-router.post('/', authMiddleware(['SUPER_ADMIN']), createSchool);
+router.post('/', authMiddleware(['SUPER_ADMIN']), registerSchool);
 
 // Update school (SUPER_ADMIN only)
 router.put('/:id', authMiddleware(['SUPER_ADMIN']), updateSchool);

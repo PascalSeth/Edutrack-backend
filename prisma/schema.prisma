@@ -5,11 +5,10 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
+}
 
-} 
-
-// User system with role-based access
+// Core User system with enhanced role-based access
 model User {
   id              String    @id @default(uuid())
   email           String    @unique
@@ -19,6 +18,7 @@ model User {
   surname         String
   address         String?
   phone           String?
+  profileImageUrl String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   isActive        Boolean   @default(true)
@@ -27,35 +27,30 @@ model User {
   lastLogin       DateTime?
   
   // User profile based on role
-  admin           Admin?
+  schoolAdmin     SchoolAdmin?
   principal       Principal?
   teacher         Teacher?
   parent          Parent?
   
-  // Shared features across roles
+  // Communication features
   sentMessages    Message[]        @relation("SentMessages")
   receivedMessages Message[]       @relation("ReceivedMessages")
   notifications   Notification[]
   deviceTokens    DeviceToken[]
+  
+  // Chat participants
+  chatParticipants ChatParticipant[]
 }
 
 enum UserRole {
   SUPER_ADMIN
+  SCHOOL_ADMIN
   PRINCIPAL
   TEACHER
   PARENT
 }
 
-// System administrator
-model Admin {
-  id          String    @id @default(uuid())
-  user        User      @relation(fields: [id], references: [id], onDelete: Cascade)
-  
-  // Admin manages schools
-  schools     School[]
-}
-
-// Schools
+// Enhanced School model with registration and verification
 model School {
   id              String    @id @default(uuid())
   name            String
@@ -68,15 +63,26 @@ model School {
   email           String?
   website         String?
   logoUrl         String?
+  
+  // School verification and registration
+  isVerified      Boolean   @default(false)
+  verifiedAt      DateTime?
+  registrationStatus SchoolRegistrationStatus @default(PENDING)
+  accreditationDocuments String[] // URLs to documents in Supabase
+  schoolType      SchoolType?
+  missionStatement String?
+  virtualTourUrl  String?
+  
+  // Branding customization
+  brandColors     Json?     // Store custom colors
+  welcomeMessage  String?
+  
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   isActive        Boolean   @default(true)
-  isVerified      Boolean   @default(false)
-  verifiedAt      DateTime?
   
   // School relationships
-  adminId         String?
-  admin           Admin?           @relation(fields: [adminId], references: [id])
+  schoolAdmin     SchoolAdmin?
   principals      Principal[]
   teachers        Teacher[]
   parents         Parent[]
@@ -90,34 +96,72 @@ model School {
   events          Event[]
   feeStructures   FeeStructure[]
   payments        Payment[]
+  assignments     Assignment[]
+  examQuestions   ExamQuestion[]
   
-  // School subscription/billing information
+  // School subscription/billing
   subscription    Subscription?
+  
+  // Multi-tenant isolation
+  tenantId        String    @unique @default(uuid())
 }
 
-// School principal (admin role for a specific school)
+enum SchoolRegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  UNDER_REVIEW
+}
+
+enum SchoolType {
+  PRIMARY
+  SECONDARY
+  MONTESSORI
+  INTERNATIONAL
+  TECHNICAL
+  UNIVERSITY
+  OTHER
+}
+
+// School administrator (manages the school)
+model SchoolAdmin {
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [id], references: [id], onDelete: Cascade)
+  
+  schoolId        String    @unique
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Admin permissions
+  permissions     Json?     // Store specific permissions
+}
+
+// School principal
 model Principal {
   id              String    @id @default(uuid())
   user            User      @relation(fields: [id], references: [id], onDelete: Cascade)
-  imageUrl        String?
   
   schoolId        String
   school          School    @relation(fields: [schoolId], references: [id])
   
-  // Principal manages academic content
-  createdCalendars  AcademicCalendar[]
+  // Principal-specific data
+  qualifications  String?
+  bio             String?
   
-  // Approvals
+  // Approval status
+  approval        Approval? @relation("PrincipalApproval")
+  
+  // Principal activities
+  createdCalendars  AcademicCalendar[]
   approvals       Approval[] @relation("ApprovedBy")
+  createdEvents   Event[]    @relation("CreatedBy")
 }
 
-// Teacher
+// Enhanced Teacher model with approval workflow
 model Teacher {
   id              String    @id @default(uuid())
   user            User      @relation(fields: [id], references: [id], onDelete: Cascade)
   bloodType       String?
   sex             UserSex?
-  imageUrl        String?
   birthday        DateTime?
   bio             String?
   qualifications  String?
@@ -126,8 +170,9 @@ model Teacher {
   schoolId        String
   school          School    @relation(fields: [schoolId], references: [id])
   
-  // Approval status
+  // Approval status and workflow
   approval        Approval? @relation("TeacherApproval")
+  approvalStatus  ApprovalStatus @default(PENDING)
   
   // Teacher relationships
   subjects        Subject[]       @relation("TeacherSubjects")
@@ -139,7 +184,7 @@ model Teacher {
   uploadedResults Result[]        @relation("ResultUploader")
 }
 
-// Parent
+// Enhanced Parent model with child verification
 model Parent {
   id              String    @id @default(uuid())
   user            User      @relation(fields: [id], references: [id], onDelete: Cascade)
@@ -148,12 +193,17 @@ model Parent {
   schoolId        String
   school          School    @relation(fields: [schoolId], references: [id])
   
+  // Verification status
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt      DateTime?
+  
   // Parent relationships
   children        Student[]
   payments        Payment[]
+  feedbacks       ParentFeedback[]
 }
 
-// Student
+// Enhanced Student model
 model Student {
   id              String    @id @default(uuid())
   registrationNumber String  @unique
@@ -180,30 +230,43 @@ model Student {
   // Student records
   attendances     Attendance[]
   results         Result[]
+  assignmentSubmissions AssignmentSubmission[]
 }
 
-// Approval model for centralizing approval logic
+// Approval system for various entities
 model Approval {
   id              String    @id @default(uuid())
-  isApproved      Boolean   @default(false)
+  status          ApprovalStatus @default(PENDING)
   approvedAt      DateTime?
+  rejectedAt      DateTime?
+  comments        String?
+  
+  // Approver
   approvedById    String?
   approvedBy      Principal? @relation("ApprovedBy", fields: [approvedById], references: [id])
   
-  // Relationships
+  // What's being approved
   teacher         Teacher?  @relation("TeacherApproval", fields: [teacherId], references: [id])
   teacherId       String?   @unique
+  principal       Principal? @relation("PrincipalApproval", fields: [principalId], references: [id])
+  principalId     String?   @unique
   examQuestion    ExamQuestion? @relation("ExamQuestionApproval", fields: [examQuestionId], references: [id])
   examQuestionId  String?   @unique
   result          Result?   @relation("ResultApproval", fields: [resultId], references: [id])
   resultId        String?   @unique
+  assignment      Assignment? @relation("AssignmentApproval", fields: [assignmentId], references: [id])
+  assignmentId    String?   @unique
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
-// Grade levels in a school
+// Grade levels
 model Grade {
   id              String    @id @default(uuid())
   name            String
   level           Int
+  description     String?
   
   // School relationship
   schoolId        String
@@ -216,11 +279,12 @@ model Grade {
   @@unique([schoolId, level])
 }
 
-// Classes within a grade
+// Classes within grades
 model Class {
   id              String    @id @default(uuid())
   name            String
   capacity        Int
+  description     String?
   
   // School relationship
   schoolId        String
@@ -238,6 +302,7 @@ model Class {
   timetables      Timetable[]
   events          Event[]   @relation("ClassEvents")
   announcements   Announcement[] @relation("ClassAnnouncements")
+  assignments     Assignment[]
   
   @@unique([schoolId, name])
 }
@@ -246,6 +311,7 @@ model Class {
 model Subject {
   id              String    @id @default(uuid())
   name            String
+  code            String?
   description     String?
   
   // School relationship
@@ -255,14 +321,17 @@ model Subject {
   // Subject relationships
   teachers        Teacher[] @relation("TeacherSubjects")
   lessons         Lesson[]
+  assignments     Assignment[]
+  examQuestions   ExamQuestion[]
   
   @@unique([schoolId, name])
 }
 
-// Lessons (instances of subjects taught by teachers)
+// Lessons
 model Lesson {
   id              String    @id @default(uuid())
   name            String
+  description     String?
   
   // Relationships
   subjectId       String
@@ -274,8 +343,6 @@ model Lesson {
   
   // Lesson content
   timetableSlots  TimetableSlot[]
-  examQuestions   ExamQuestion[]
-  assignments     Assignment[]
   attendances     Attendance[]
 }
 
@@ -285,6 +352,7 @@ model AcademicYear {
   name            String
   startDate       DateTime
   endDate         DateTime
+  isActive        Boolean   @default(false)
   
   // School relationship
   schoolId        String
@@ -292,16 +360,17 @@ model AcademicYear {
   
   // Academic year content
   academicCalendars AcademicCalendar[]
+  feeStructures   FeeStructure[]
   
   @@unique([schoolId, name])
 }
 
-// Academic calendar
+// Academic calendar with document storage
 model AcademicCalendar {
   id              String    @id @default(uuid())
   title           String
   description     String?
-  document        String?   // URL to document
+  documentUrls    String[]  // URLs to documents in Supabase storage
   
   // Relationships
   schoolId        String
@@ -313,6 +382,9 @@ model AcademicCalendar {
   
   // Calendar items
   calendarItems   CalendarItem[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // Calendar items
@@ -323,19 +395,21 @@ model CalendarItem {
   startDate       DateTime
   endDate         DateTime
   itemType        CalendarItemType
+  isAllDay        Boolean   @default(false)
   
   // Relationships
   academicCalendarId String
   academicCalendar AcademicCalendar @relation(fields: [academicCalendarId], references: [id])
 }
 
-// Class timetable
+// Timetables
 model Timetable {
   id              String    @id @default(uuid())
   name            String
   effectiveFrom   DateTime
   effectiveTo     DateTime?
   isActive        Boolean   @default(true)
+  documentUrl     String?   // URL to timetable document
   
   // Relationships
   classId         String
@@ -359,24 +433,84 @@ model TimetableSlot {
   lesson          Lesson    @relation(fields: [lessonId], references: [id])
 }
 
-// Exam questions
+// Enhanced Assignments with file storage
+model Assignment {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  instructions    String?
+  documentUrls    String[]  // URLs to assignment documents in Supabase
+  startDate       DateTime
+  dueDate         DateTime
+  maxScore        Int?
+  
+  // Relationships
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  subjectId       String
+  subject         Subject   @relation(fields: [subjectId], references: [id])
+  teacherId       String
+  teacher         Teacher   @relation(fields: [teacherId], references: [id])
+  classId         String?
+  class           Class?    @relation(fields: [classId], references: [id])
+  
+  // Assignment type
+  assignmentType  AssignmentType @default(INDIVIDUAL)
+  
+  // Approval
+  approval        Approval? @relation("AssignmentApproval")
+  
+  // Submissions and results
+  submissions     AssignmentSubmission[]
+  results         Result[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Assignment submissions
+model AssignmentSubmission {
+  id              String    @id @default(uuid())
+  submissionUrls  String[]  // URLs to submitted files
+  submittedAt     DateTime  @default(now())
+  comments        String?
+  
+  // Relationships
+  assignmentId    String
+  assignment      Assignment @relation(fields: [assignmentId], references: [id])
+  studentId       String
+  student         Student   @relation(fields: [studentId], references: [id])
+  
+  @@unique([assignmentId, studentId])
+}
+
+// Enhanced Exam Questions with approval workflow
 model ExamQuestion {
   id              String    @id @default(uuid())
   title           String
   description     String?
-  documentUrl     String?   // URL to question document
+  documentUrls    String[]  // URLs to question documents
+  questionType    QuestionType @default(WRITTEN)
+  duration        Int?      // Duration in minutes
+  maxScore        Int?
   
   // Relationships
-  lessonId        String
-  lesson          Lesson    @relation(fields: [lessonId], references: [id])
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  subjectId       String
+  subject         Subject   @relation(fields: [subjectId], references: [id])
   teacherId       String
   teacher         Teacher   @relation(fields: [teacherId], references: [id])
   
-  // Approval status
+  // Approval workflow
   approval        Approval? @relation("ExamQuestionApproval")
+  version         Int       @default(1)
   
   // Exams
   exams           Exam[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // Exam instances
@@ -385,6 +519,8 @@ model Exam {
   title           String
   startTime       DateTime
   endTime         DateTime
+  venue           String?
+  instructions    String?
   
   // Relationships
   examQuestionId  String
@@ -392,35 +528,21 @@ model Exam {
   
   // Results
   results         Result[]
+  
+  createdAt       DateTime  @default(now())
 }
 
-// Assignments
-model Assignment {
-  id              String    @id @default(uuid())
-  title           String
-  description     String?
-  documentUrl     String?   // URL to assignment document
-  startDate       DateTime
-  dueDate         DateTime
-  
-  // Relationships
-  lessonId        String
-  lesson          Lesson    @relation(fields: [lessonId], references: [id])
-  teacherId       String
-  teacher         Teacher   @relation(fields: [teacherId], references: [id])
-  
-  // Results
-  results         Result[]
-}
-
-// Student results
+// Enhanced Results with document storage
 model Result {
   id              String    @id @default(uuid())
   score           Int
+  maxScore        Int?
+  percentage      Float?
+  grade           String?
   feedback        String?
-  documentUrl     String?   // URL to result document
+  documentUrls    String[]  // URLs to result documents
   
-  // Result type
+  // Result type (exam or assignment)
   examId          String?
   exam            Exam?     @relation(fields: [examId], references: [id])
   assignmentId    String?
@@ -430,41 +552,51 @@ model Result {
   studentId       String
   student         Student   @relation(fields: [studentId], references: [id])
   
-  // Upload information
+  // Upload and approval
   uploadedById    String
   uploadedBy      Teacher   @relation("ResultUploader", fields: [uploadedById], references: [id])
   uploadedAt      DateTime  @default(now())
-  
-  // Approval status
   approval        Approval? @relation("ResultApproval")
+  
+  // Analytics
+  classAverage    Float?
+  rank            Int?
 }
 
-// Attendance records
+// Attendance tracking
 model Attendance {
   id              String    @id @default(uuid())
   date            DateTime  @default(now())
   present         Boolean
   note            String?
+  excuseDocumentUrl String? // URL to excuse document
   
   // Relationships
   studentId       String
   student         Student   @relation(fields: [studentId], references: [id])
-  lessonId        String
-  lesson          Lesson    @relation(fields: [lessonId], references: [id])
+  lessonId        String?
+  lesson          Lesson?   @relation(fields: [lessonId], references: [id])
   recordedById    String
   recordedBy      Teacher   @relation("AttendanceRecorder", fields: [recordedById], references: [id])
+  
+  @@unique([studentId, lessonId, date])
 }
 
-// Fee structure
+// Enhanced Fee Structure
 model FeeStructure {
   id              String    @id @default(uuid())
   name            String
   description     String?
   amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("USD")
   dueDate         DateTime?
   gracePeriod     Int?      // Days
   lateFee         Decimal?  @db.Decimal(10, 2)
-  academicYear    String
+  feeType         FeeType   @default(TUITION)
+  
+  // Academic year
+  academicYearId  String
+  academicYear    AcademicYear @relation(fields: [academicYearId], references: [id])
   
   // School relationship
   schoolId        String
@@ -472,16 +604,24 @@ model FeeStructure {
   
   // Payments
   payments        Payment[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
-// Payment records
+// Enhanced Payment system with transaction fees
 model Payment {
   id              String    @id @default(uuid())
   amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("USD")
   status          PaymentStatus
   paymentMethod   PaymentMethod
   transactionId   String?
   paymentDate     DateTime  @default(now())
+  
+  // Transaction fees (EduTrack's revenue)
+  transactionFee  Decimal   @db.Decimal(10, 2) @default(0)
+  feePercentage   Float     @default(0.025) // 2.5%
   
   // Relationships
   schoolId        String
@@ -491,56 +631,129 @@ model Payment {
   feeStructureId  String
   feeStructure    FeeStructure @relation(fields: [feeStructureId], references: [id])
   
-  // Receipt information
+  // Receipt
   receiptNumber   String?   @unique
   receiptUrl      String?   // URL to receipt document
+  
+  // Payment gateway data
+  gatewayData     Json?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
-// School subscription
+// School subscription for premium features
 model Subscription {
   id              String    @id @default(uuid())
-  plan            String
+  plan            SubscriptionPlan
   startDate       DateTime  @default(now())
   endDate         DateTime?
   isActive        Boolean   @default(true)
   lastBillingDate DateTime  @default(now())
   nextBillingDate DateTime?
   amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("USD")
+  
+  // Features
+  features        Json?     // Store enabled features
   
   // School relationship
   schoolId        String    @unique
   school          School    @relation(fields: [schoolId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
-// Messages
+// Enhanced messaging system
+model Chat {
+  id              String    @id @default(uuid())
+  name            String?   // For group chats
+  chatType        ChatType  @default(DIRECT)
+  isActive        Boolean   @default(true)
+  
+  // Chat metadata
+  lastMessageAt   DateTime?
+  
+  // Participants and messages
+  participants    ChatParticipant[]
+  messages        Message[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model ChatParticipant {
+  id              String    @id @default(uuid())
+  
+  // Relationships
+  chatId          String
+  chat            Chat      @relation(fields: [chatId], references: [id])
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  
+  // Participant status
+  joinedAt        DateTime  @default(now())
+  leftAt          DateTime?
+  isAdmin         Boolean   @default(false)
+  lastReadAt      DateTime?
+  
+  @@unique([chatId, userId])
+}
+
 model Message {
   id              String    @id @default(uuid())
   content         String
-  sentAt          DateTime  @default(now())
-  readAt          DateTime?
+  messageType     MessageType @default(TEXT)
+  attachmentUrls  String[]  // URLs to attachments in Supabase
   
-  // Sender/receiver relationships
+  // Relationships
+  chatId          String
+  chat            Chat      @relation(fields: [chatId], references: [id])
   senderId        String
   sender          User      @relation("SentMessages", fields: [senderId], references: [id])
-  receiverId      String
-  receiver        User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  receiverId      String?   // For direct messages
+  receiver        User?     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  
+  // Message status
+  sentAt          DateTime  @default(now())
+  deliveredAt     DateTime?
+  readAt          DateTime?
+  isEdited        Boolean   @default(false)
+  editedAt        DateTime?
+  
+  // Reply functionality
+  replyToId       String?
+  replyTo         Message?  @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies         Message[] @relation("MessageReplies")
 }
 
-// Notifications
+// Enhanced notifications
 model Notification {
   id              String    @id @default(uuid())
   title           String
   content         String
   type            NotificationType
-  createdAt       DateTime  @default(now())
-  readAt          DateTime?
+  priority        NotificationPriority @default(NORMAL)
   
-  // User relationship
+  // Notification data
+  data            Json?     // Additional data for the notification
+  actionUrl       String?   // Deep link or URL
+  imageUrl        String?
+  
+  // Relationships
   userId          String
   user            User      @relation(fields: [userId], references: [id])
+  
+  // Status
+  isRead          Boolean   @default(false)
+  readAt          DateTime?
+  sentAt          DateTime  @default(now())
+  
+  createdAt       DateTime  @default(now())
 }
 
-// Events
+// Events and announcements
 model Event {
   id              String    @id @default(uuid())
   title           String
@@ -548,30 +761,87 @@ model Event {
   location        String?
   startTime       DateTime
   endTime         DateTime
+  eventType       EventType @default(GENERAL)
   
-  // School relationship
+  // Event media
+  imageUrls       String[]  // URLs to event images
+  documentUrls    String[]  // URLs to event documents
+  
+  // Relationships
   schoolId        String
   school          School    @relation(fields: [schoolId], references: [id])
-  
-  // Class relationship (optional)
   classId         String?
   class           Class?    @relation("ClassEvents", fields: [classId], references: [id])
+  createdById     String?
+  createdBy       Principal? @relation("CreatedBy", fields: [createdById], references: [id])
+  
+  // RSVP functionality
+  rsvpRequired    Boolean   @default(false)
+  rsvps           EventRSVP[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
-// Announcements
+model EventRSVP {
+  id              String    @id @default(uuid())
+  response        RSVPResponse
+  
+  // Relationships
+  eventId         String
+  event           Event     @relation(fields: [eventId], references: [id])
+  userId          String
+  
+  respondedAt     DateTime  @default(now())
+  
+  @@unique([eventId, userId])
+}
+
 model Announcement {
   id              String    @id @default(uuid())
   title           String
   content         String
-  date            DateTime  @default(now())
+  priority        AnnouncementPriority @default(NORMAL)
   
-  // School relationship
+  // Announcement media
+  imageUrls       String[]
+  documentUrls    String[]
+  
+  // Relationships
   schoolId        String
   school          School    @relation(fields: [schoolId], references: [id])
-  
-  // Class relationship (optional)
   classId         String?
   class           Class?    @relation("ClassAnnouncements", fields: [classId], references: [id])
+  
+  // Targeting
+  targetRoles     UserRole[]
+  
+  // Status
+  isPublished     Boolean   @default(false)
+  publishedAt     DateTime?
+  expiresAt       DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Parent feedback system
+model ParentFeedback {
+  id              String    @id @default(uuid())
+  rating          Int       // 1-5 stars
+  feedback        String?
+  feedbackType    FeedbackType
+  isAnonymous     Boolean   @default(true)
+  
+  // Relationships
+  parentId        String
+  parent          Parent    @relation(fields: [parentId], references: [id])
+  
+  // What's being rated
+  teacherId       String?
+  schoolId        String?
+  
+  createdAt       DateTime  @default(now())
 }
 
 // Device tokens for push notifications
@@ -580,10 +850,32 @@ model DeviceToken {
   token           String    @unique
   deviceType      DeviceType
   lastUsed        DateTime  @default(now())
+  isActive        Boolean   @default(true)
   
   // User relationship
   userId          String
   user            User      @relation(fields: [userId], references: [id])
+}
+
+// File storage tracking
+model FileStorage {
+  id              String    @id @default(uuid())
+  fileName        String
+  originalName    String
+  fileSize        Int
+  mimeType        String
+  fileUrl         String    // Supabase storage URL
+  bucketName      String
+  
+  // File metadata
+  uploadedById    String
+  schoolId        String?   // For multi-tenant file organization
+  
+  // File categorization
+  fileCategory    FileCategory
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // Enums
@@ -591,6 +883,19 @@ enum UserSex {
   MALE
   FEMALE
   OTHER
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  UNDER_REVIEW
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
 }
 
 enum Day {
@@ -614,12 +919,41 @@ enum CalendarItemType {
   OTHER
 }
 
+enum AssignmentType {
+  INDIVIDUAL
+  GROUP
+  CLASS_WIDE
+}
+
+enum QuestionType {
+  WRITTEN
+  MULTIPLE_CHOICE
+  PRACTICAL
+  ORAL
+  PROJECT
+}
+
+enum FeeType {
+  TUITION
+  REGISTRATION
+  EXAMINATION
+  LIBRARY
+  LABORATORY
+  SPORTS
+  TRANSPORT
+  UNIFORM
+  BOOKS
+  EXTRACURRICULAR
+  OTHER
+}
+
 enum PaymentStatus {
   PENDING
   COMPLETED
   FAILED
   REFUNDED
   CANCELLED
+  PARTIALLY_PAID
 }
 
 enum PaymentMethod {
@@ -627,8 +961,34 @@ enum PaymentMethod {
   DEBIT_CARD
   BANK_TRANSFER
   MOBILE_MONEY
+  PAYPAL
+  STRIPE
+  FLUTTERWAVE
+  PAYSTACK
   CASH
   OTHER
+}
+
+enum SubscriptionPlan {
+  FREE
+  BASIC
+  PREMIUM
+  ENTERPRISE
+}
+
+enum ChatType {
+  DIRECT
+  GROUP
+  ANNOUNCEMENT
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  DOCUMENT
+  AUDIO
+  VIDEO
+  LOCATION
 }
 
 enum NotificationType {
@@ -640,11 +1000,68 @@ enum NotificationType {
   ANNOUNCEMENT
   EVENT
   MESSAGE
+  APPROVAL
+  REMINDER
   GENERAL
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum EventType {
+  ACADEMIC
+  SPORTS
+  CULTURAL
+  MEETING
+  EXAMINATION
+  HOLIDAY
+  GENERAL
+}
+
+enum RSVPResponse {
+  ATTENDING
+  NOT_ATTENDING
+  MAYBE
+}
+
+enum AnnouncementPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum FeedbackType {
+  TEACHER_RATING
+  SCHOOL_RATING
+  SERVICE_FEEDBACK
+  SUGGESTION
+  COMPLAINT
 }
 
 enum DeviceType {
   IOS
   ANDROID
   WEB
+}
+
+enum FileCategory {
+  PROFILE_IMAGE
+  SCHOOL_LOGO
+  DOCUMENT
+  ASSIGNMENT
+  EXAM_QUESTION
+  RESULT
+  TIMETABLE
+  CALENDAR
+  ANNOUNCEMENT
+  EVENT_IMAGE
+  CHAT_ATTACHMENT
+  RECEIPT
+  ACCREDITATION
+  OTHER
 }
