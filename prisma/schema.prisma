@@ -37,6 +37,7 @@ model User {
   receivedMessages Message[]       @relation("ReceivedMessages")
   notifications   Notification[]
   deviceTokens    DeviceToken[]
+  eventRsvps      EventRSVP[]
   
   // Chat participants
   chatParticipants ChatParticipant[]
@@ -791,6 +792,7 @@ model EventRSVP {
   eventId         String
   event           Event     @relation(fields: [eventId], references: [id])
   userId          String
+  user            User      @relation(fields: [userId], references: [id])
   
   respondedAt     DateTime  @default(now())
   

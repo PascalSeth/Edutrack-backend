@@ -19,6 +19,7 @@ export const logger = winston.createLogger({
 if (process.env.NODE_ENV !== "production") {
   logger.add(new winston.transports.Console({ format: winston.format.simple() }))
 }
+
 // Enhanced Authentication Middleware with multi-tenant support
 export interface AuthRequest extends Request {
   user?: {
@@ -27,11 +28,10 @@ export interface AuthRequest extends Request {
     schoolId?: string
     tenantId?: string
   }
-  file?: Express.Multer.File
-  files?: Express.Multer.File[]
+  // Remove the conflicting file/files properties - they're already defined in Express.Request
 }
 
-// Add Express.Multer type definition
+// Update the global declaration to avoid conflicts
 declare global {
   namespace Express {
     namespace Multer {
@@ -47,11 +47,21 @@ declare global {
         buffer: Buffer
       }
     }
+    // Extend the Request interface to ensure compatibility
+    interface Request {
+      user?: {
+        id: string
+        role: string
+        schoolId?: string
+        tenantId?: string
+      }
+    }
   }
 }
 
 export const authMiddleware =
-  (requiredRoles: string[]) => async (req: AuthRequest, res: Response, next: NextFunction) => {
+  (requiredRoles: string[]) => 
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(" ")[1]
     if (!token) {
       logger.warn("No token provided", { path: req.path })
