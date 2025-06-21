@@ -2,9 +2,11 @@
   "name": "edutrack-backend",
   "version": "1.0.0",
   "main": "dist/index.js",
-  "scripts": {
+ "scripts": {
+    "start": "node --max-old-space-size=1024 dist/index.js",
     "build": "tsc",
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon --exec \"node --max-old-space-size=1024 -r ts-node/register src/index.ts\"",
+    "dev:memory": "nodemon --exec \"node --max-old-space-size=2048 -r ts-node/register src/index.ts\""
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
