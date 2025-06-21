@@ -24,3 +24,19 @@
 {"level":"info","message":"Server running on port 3000","timestamp":"2025-06-10T03:57:42.042Z"}
 {"level":"info","message":"Server running on port 3000","timestamp":"2025-06-18T14:32:57.430Z"}
 {"level":"info","message":"Server running on port 3000","timestamp":"2025-06-20T18:28:35.907Z"}
+{"email":"admin@edutrack.com","level":"warn","message":"Login failed: Invalid password","timestamp":"2025-06-20T20:04:13.773Z"}
+{"error":{"clientVersion":"5.22.0","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"User"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to login","timestamp":"2025-06-20T20:08:30.983Z"}
+{"error":{"clientVersion":"5.22.0","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"User"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to login","timestamp":"2025-06-20T20:08:42.983Z"}
+{"error":{},"level":"error","message":"Failed to login","timestamp":"2025-06-20T20:09:19.091Z"}
+{"email":"admin@edutracka.com","level":"warn","message":"Login failed: User not found","timestamp":"2025-06-20T20:56:34.351Z"}
+{"error":{},"level":"error","message":"Failed to register user","timestamp":"2025-06-20T20:56:45.171Z"}
+{"email":"admin@greenwood-academy.edu","level":"warn","message":"Login failed: Invalid password","timestamp":"2025-06-21T00:07:05.904Z"}
+{"email":"admin@greenwood-academy.edu","level":"warn","message":"Login failed: Invalid password","timestamp":"2025-06-21T00:07:17.265Z"}
+{"email":"parent1@email.com","level":"warn","message":"Login failed: Invalid password","timestamp":"2025-06-21T00:09:05.929Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-06-21T00:11:43.300Z"}
+{"email":"parent1@email.com","level":"warn","message":"Login failed: Invalid password","timestamp":"2025-06-21T00:12:03.090Z"}
+{"email":"parent1@email.com","level":"warn","message":"Login failed: Invalid password","timestamp":"2025-06-21T00:12:14.522Z"}
+{"errors":[{"code":"invalid_string","message":"Invalid email","path":["email"],"validation":"email"}],"level":"warn","message":"Invalid input for login","timestamp":"2025-06-21T00:15:11.046Z"}
+{"errors":[{"code":"invalid_string","message":"Invalid email","path":["email"],"validation":"email"}],"level":"warn","message":"Invalid input for login","timestamp":"2025-06-21T00:15:13.545Z"}
+{"error":{},"level":"error","message":"Failed to login","timestamp":"2025-06-21T00:15:43.258Z"}
+{"error":{},"level":"error","message":"Failed to login","timestamp":"2025-06-21T00:16:10.719Z"}

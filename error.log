@@ -1,1 +1,7 @@
 {"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-05-02T16:53:17.030Z"}
+{"error":{"clientVersion":"5.22.0","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"User"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to login","timestamp":"2025-06-20T20:08:30.983Z"}
+{"error":{"clientVersion":"5.22.0","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"User"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to login","timestamp":"2025-06-20T20:08:42.983Z"}
+{"error":{},"level":"error","message":"Failed to login","timestamp":"2025-06-20T20:09:19.091Z"}
+{"error":{},"level":"error","message":"Failed to register user","timestamp":"2025-06-20T20:56:45.171Z"}
+{"error":{},"level":"error","message":"Failed to login","timestamp":"2025-06-21T00:15:43.258Z"}
+{"error":{},"level":"error","message":"Failed to login","timestamp":"2025-06-21T00:16:10.719Z"}
