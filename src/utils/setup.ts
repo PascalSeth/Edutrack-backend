@@ -28,7 +28,6 @@ export interface AuthRequest extends Request {
     schoolId?: string
     tenantId?: string
   }
-  // Remove the conflicting file/files properties - they're already defined in Express.Request
 }
 
 // Update the global declaration to avoid conflicts
@@ -60,8 +59,7 @@ declare global {
 }
 
 export const authMiddleware =
-  (requiredRoles: string[]) => 
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  (requiredRoles: string[]) => async (req: AuthRequest, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(" ")[1]
     if (!token) {
       logger.warn("No token provided", { path: req.path })
@@ -85,7 +83,7 @@ export const authMiddleware =
         return res.status(403).json({ message: "Insufficient permissions" })
       }
 
-      // Get user's school context for multi-tenancy
+      // Get user's school context for multi-tenancy (except for SUPER_ADMIN and PARENT)
       if (decoded.role !== "SUPER_ADMIN") {
         const user = await prisma.user.findUnique({
           where: { id: decoded.id },
@@ -93,7 +91,7 @@ export const authMiddleware =
             schoolAdmin: { include: { school: true } },
             principal: { include: { school: true } },
             teacher: { include: { school: true } },
-            parent: { include: { school: true } },
+            parent: true, // Parent doesn't have a single school
           },
         })
 
@@ -102,7 +100,7 @@ export const authMiddleware =
           if (user.schoolAdmin) school = user.schoolAdmin.school
           else if (user.principal) school = user.principal.school
           else if (user.teacher) school = user.teacher.school
-          else if (user.parent) school = user.parent.school
+          // Parents don't have a single school context
 
           if (school) {
             decoded.schoolId = school.id
@@ -119,10 +117,15 @@ export const authMiddleware =
     }
   }
 
-// Multi-tenant data filter
+// Enhanced multi-tenant data filter
 export const getTenantFilter = (user: AuthRequest["user"]) => {
   if (!user || user.role === "SUPER_ADMIN") {
     return {} // Super admin can access all data
+  }
+
+  // Parents don't have a single school filter since they can have children in multiple schools
+  if (user.role === "PARENT") {
+    return {} // Parent filtering is handled at the query level
   }
 
   if (user.schoolId) {
@@ -130,6 +133,35 @@ export const getTenantFilter = (user: AuthRequest["user"]) => {
   }
 
   return {}
+}
+
+// Enhanced tenant filter for parent-specific queries
+export const getParentTenantFilter = (parentId: string) => {
+  return {
+    students: {
+      some: { parentId: parentId },
+    },
+  }
+}
+
+// Enhanced tenant filter for teacher-specific queries
+export const getTeacherTenantFilter = (teacherId: string, schoolId?: string) => {
+  const baseFilter: any = {
+    OR: [
+      { supervisorId: teacherId },
+      {
+        lessons: {
+          some: { teacherId: teacherId },
+        },
+      },
+    ],
+  }
+
+  if (schoolId) {
+    baseFilter.schoolId = schoolId
+  }
+
+  return baseFilter
 }
 
 // Error Handler
@@ -203,4 +235,76 @@ export const createNotification = async (userId: string, title: string, content:
 // Revenue calculation helper
 export const calculateTransactionFee = (amount: number, feePercentage = 0.025): number => {
   return Math.round(amount * feePercentage * 100) / 100 // Round to 2 decimal places
+}
+
+// Multi-tenant validation helpers
+export const validateSchoolAccess = async (userId: string, schoolId: string, userRole: string): Promise<boolean> => {
+  if (userRole === "SUPER_ADMIN") return true
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      schoolAdmin: true,
+      principal: true,
+      teacher: true,
+      parent: {
+        include: {
+          children: { select: { schoolId: true } },
+        },
+      },
+    },
+  })
+
+  if (!user) return false
+
+  switch (userRole) {
+    case "SCHOOL_ADMIN":
+      return user.schoolAdmin?.schoolId === schoolId
+    case "PRINCIPAL":
+      return user.principal?.schoolId === schoolId
+    case "TEACHER":
+      return user.teacher?.schoolId === schoolId
+    case "PARENT":
+      return user.parent?.children.some((child) => child.schoolId === schoolId) || false
+    default:
+      return false
+  }
+}
+
+export const validateStudentAccess = async (userId: string, studentId: string, userRole: string): Promise<boolean> => {
+  if (userRole === "SUPER_ADMIN") return true
+
+  const student = await prisma.student.findUnique({
+    where: { id: studentId },
+    include: {
+      school: true,
+      class: {
+        include: {
+          supervisor: true,
+          lessons: {
+            include: { teacher: true },
+          },
+        },
+      },
+    },
+  })
+
+  if (!student) return false
+
+  switch (userRole) {
+    case "PARENT":
+      return student.parentId === userId
+    case "TEACHER":
+      // Teacher can access if they supervise the class or teach lessons in the class
+      return (
+        student.class?.supervisorId === userId ||
+        student.class?.lessons.some((lesson) => lesson.teacherId === userId) ||
+        false
+      )
+    case "PRINCIPAL":
+    case "SCHOOL_ADMIN":
+      return await validateSchoolAccess(userId, student.schoolId, userRole)
+    default:
+      return false
+  }
 }

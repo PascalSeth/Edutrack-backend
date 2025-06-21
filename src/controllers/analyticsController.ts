@@ -116,7 +116,14 @@ export const getSchoolAnalytics = async (req: AuthRequest, res: Response) => {
     ] = await Promise.all([
       prisma.student.count({ where: filter }),
       prisma.teacher.count({ where: filter }),
-      prisma.parent.count({ where: filter }),
+      // Updated parent count for multi-school support
+      prisma.parent.count({
+        where: {
+          children: {
+            some: { schoolId: req.user?.schoolId },
+          },
+        },
+      }),
       prisma.class.count({ where: filter }),
       prisma.assignment.count({
         where: {
@@ -151,6 +158,7 @@ export const getSchoolAnalytics = async (req: AuthRequest, res: Response) => {
     const [totalRevenue, monthlyRevenue] = await Promise.all([
       prisma.payment.aggregate({
         where: {
+          schoolId: req.user?.schoolId,
           status: "COMPLETED",
         },
         _sum: { amount: true },
@@ -243,11 +251,29 @@ export const getStudentAnalytics = async (req: AuthRequest, res: Response) => {
   try {
     const data = analyticsQuerySchema.parse(req.query)
 
-    // Verify access to student
+    // Verify access to student with enhanced multi-tenant support
     let student
     if (req.user?.role === "PARENT") {
       student = await prisma.student.findFirst({
         where: { id: studentId, parentId: req.user.id },
+      })
+    } else if (req.user?.role === "TEACHER") {
+      student = await prisma.student.findFirst({
+        where: {
+          id: studentId,
+          OR: [
+            {
+              class: { supervisorId: req.user.id },
+            },
+            {
+              class: {
+                lessons: {
+                  some: { teacherId: req.user.id },
+                },
+              },
+            },
+          ],
+        },
       })
     } else {
       student = await prisma.student.findFirst({
@@ -409,17 +435,38 @@ export const getClassAnalytics = async (req: AuthRequest, res: Response) => {
   try {
     const data = analyticsQuerySchema.parse(req.query)
 
-    // Verify access to class
-    const classRecord = await prisma.class.findFirst({
-      where: {
-        id: classId,
-        ...getTenantFilter(req.user),
-      },
-      include: {
-        students: { select: { id: true } },
-        grade: { select: { name: true, level: true } },
-      },
-    })
+    // Verify access to class with enhanced multi-tenant support
+    let classRecord
+    if (req.user?.role === "TEACHER") {
+      classRecord = await prisma.class.findFirst({
+        where: {
+          id: classId,
+          OR: [
+            { supervisorId: req.user.id },
+            {
+              lessons: {
+                some: { teacherId: req.user.id },
+              },
+            },
+          ],
+        },
+        include: {
+          students: { select: { id: true } },
+          grade: { select: { name: true, level: true } },
+        },
+      })
+    } else {
+      classRecord = await prisma.class.findFirst({
+        where: {
+          id: classId,
+          ...getTenantFilter(req.user),
+        },
+        include: {
+          students: { select: { id: true } },
+          grade: { select: { name: true, level: true } },
+        },
+      })
+    }
 
     if (!classRecord) {
       return res.status(404).json({ message: "Class not found or access denied" })
@@ -593,19 +640,26 @@ export const getParentEngagementAnalytics = async (req: AuthRequest, res: Respon
       return res.status(403).json({ message: "Access denied" })
     }
 
-    const filter = getTenantFilter(req.user)
     const schoolId = req.user?.schoolId
 
-    // Get parent engagement metrics
+    // Get parent engagement metrics with updated multi-school support
     const [totalParents, activeParents, messageStats, eventParticipation, paymentStats, appUsageStats] =
       await Promise.all([
-        // Total parents
-        prisma.parent.count({ where: filter }),
-
-        // Active parents (logged in within last 30 days)
+        // Total parents with children in this school
         prisma.parent.count({
           where: {
-            ...filter,
+            children: {
+              some: { schoolId: req.user?.schoolId },
+            },
+          },
+        }),
+
+        // Active parents (logged in within last 30 days) with children in this school
+        prisma.parent.count({
+          where: {
+            children: {
+              some: { schoolId: req.user?.schoolId },
+            },
             user: {
               lastLogin: {
                 gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
@@ -625,8 +679,12 @@ export const getParentEngagementAnalytics = async (req: AuthRequest, res: Respon
         FROM "Message" m
         JOIN "User" u ON m."senderId" = u.id
         JOIN "Parent" p ON u.id = p.id
-        WHERE p."schoolId" = ${schoolId}
-          AND m."sentAt" >= NOW() - INTERVAL '30 days'
+        WHERE EXISTS (
+          SELECT 1 FROM "Student" s 
+          WHERE s."parentId" = p.id 
+          AND s."schoolId" = ${schoolId}
+        )
+        AND m."sentAt" >= NOW() - INTERVAL '30 days'
       `,
 
         // Event participation
@@ -642,6 +700,11 @@ export const getParentEngagementAnalytics = async (req: AuthRequest, res: Respon
         WHERE e."schoolId" = ${schoolId}
           AND e."startTime" >= NOW() - INTERVAL '90 days'
           AND e."rsvpRequired" = true
+          AND EXISTS (
+            SELECT 1 FROM "Student" s 
+            WHERE s."parentId" = p.id 
+            AND s."schoolId" = ${schoolId}
+          )
       `,
 
         // Payment statistics
@@ -670,8 +733,12 @@ export const getParentEngagementAnalytics = async (req: AuthRequest, res: Respon
         FROM "Notification" n
         JOIN "User" u ON n."userId" = u.id
         JOIN "Parent" p ON u.id = p.id
-        WHERE p."schoolId" = ${schoolId}
-          AND n."createdAt" >= NOW() - INTERVAL '30 days'
+        WHERE EXISTS (
+          SELECT 1 FROM "Student" s 
+          WHERE s."parentId" = p.id 
+          AND s."schoolId" = ${schoolId}
+        )
+        AND n."createdAt" >= NOW() - INTERVAL '30 days'
       `,
       ])
 

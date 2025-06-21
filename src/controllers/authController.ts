@@ -3,7 +3,7 @@ import { z } from "zod"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import { prisma, type AuthRequest, handleError, logger, createNotification } from "../utils/setup"
-import { UserRole } from "@prisma/client"
+import type { UserRole } from "@prisma/client"
 
 // Define JWT payload interface to match token structure
 interface JwtPayload {
@@ -14,42 +14,44 @@ interface JwtPayload {
 }
 
 // Enhanced validation schemas
-const registerSchema = z.object({
-  email: z.string().email("Invalid email").min(1, "Email is required"),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  name: z.string().min(1, "Name is required"),
-  surname: z.string().min(1, "Surname is required"),
-  role: z.enum(["SUPER_ADMIN", "SCHOOL_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"], { message: "Invalid role" }),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  // Make schoolId optional but validate it based on role
-  schoolId: z.string().uuid("Invalid school ID").optional(),
-  qualifications: z.string().optional(),
-  bio: z.string().optional(),
-  childDetails: z
-    .array(
-      z.object({
-        name: z.string(),
-        surname: z.string(),
-        studentId: z.string().optional(),
-        class: z.string().optional(),
-      }),
-    )
-    .optional(),
-}).refine(
-  (data) => {
-    // SUPER_ADMIN doesn't need schoolId, all others do
-    if (data.role === "SUPER_ADMIN") {
-      return true; // No schoolId validation needed for SUPER_ADMIN
-    }
-    return data.schoolId !== undefined; // All other roles require schoolId
-  },
-  {
-    message: "School ID is required for all roles except SUPER_ADMIN",
-    path: ["schoolId"],
-  }
-)
+const registerSchema = z
+  .object({
+    email: z.string().email("Invalid email").min(1, "Email is required"),
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    name: z.string().min(1, "Name is required"),
+    surname: z.string().min(1, "Surname is required"),
+    role: z.enum(["SUPER_ADMIN", "SCHOOL_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"], { message: "Invalid role" }),
+    phone: z.string().optional(),
+    address: z.string().optional(),
+    // Make schoolId optional but validate it based on role
+    schoolId: z.string().uuid("Invalid school ID").optional(),
+    qualifications: z.string().optional(),
+    bio: z.string().optional(),
+    childDetails: z
+      .array(
+        z.object({
+          name: z.string(),
+          surname: z.string(),
+          studentId: z.string().optional(),
+          class: z.string().optional(),
+        }),
+      )
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      // SUPER_ADMIN and PARENT don't need schoolId, all others do
+      if (data.role === "SUPER_ADMIN" || data.role === "PARENT") {
+        return true // No schoolId validation needed
+      }
+      return data.schoolId !== undefined // All other roles require schoolId
+    },
+    {
+      message: "School ID is required for SCHOOL_ADMIN, PRINCIPAL, and TEACHER roles",
+      path: ["schoolId"],
+    },
+  )
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email").min(1, "Email is required"),
@@ -114,7 +116,7 @@ export const register = async (req: AuthRequest, res: Response) => {
       return res.status(409).json({ message: "Email or username already exists" })
     }
 
-    // Validate school exists if schoolId provided (not needed for SUPER_ADMIN)
+    // Validate school exists if schoolId provided (not needed for SUPER_ADMIN and PARENT)
     let school = null
     if (data.schoolId) {
       school = await prisma.school.findUnique({
@@ -202,11 +204,10 @@ export const register = async (req: AuthRequest, res: Response) => {
           break
 
         case "PARENT":
-          if (!data.schoolId) throw new Error("schoolId is required for Parent")
+          // Parents don't need schoolId - they can have children in multiple schools
           await tx.parent.create({
             data: {
               id: newUser.id,
-              schoolId: data.schoolId,
               verificationStatus: "PENDING",
             },
           })
@@ -216,7 +217,7 @@ export const register = async (req: AuthRequest, res: Response) => {
       return newUser
     })
 
-    // Generate tokens with school context (SUPER_ADMIN won't have school context)
+    // Generate tokens with school context (SUPER_ADMIN and PARENT won't have school context initially)
     let tokenPayload: JwtPayload = { id: user.id, role: user.role }
     if (school) {
       tokenPayload = {
@@ -238,26 +239,25 @@ export const register = async (req: AuthRequest, res: Response) => {
     })
 
     // Send welcome notification
-    const welcomeMessage = data.role === "SUPER_ADMIN" 
-      ? "Welcome to EduTrack! Your Super Admin account has been created successfully."
-      : `Welcome ${user.name}! Your account has been created successfully. ${
-          ["PRINCIPAL", "TEACHER", "PARENT"].includes(user.role)
-            ? "Your account is pending approval from the school administration."
-            : ""
-        }`
+    const welcomeMessage =
+      data.role === "SUPER_ADMIN"
+        ? "Welcome to EduTrack! Your Super Admin account has been created successfully."
+        : data.role === "PARENT"
+          ? "Welcome to EduTrack! Your parent account has been created successfully. You can now add your children from different schools."
+          : `Welcome ${user.name}! Your account has been created successfully. ${
+              ["PRINCIPAL", "TEACHER"].includes(user.role)
+                ? "Your account is pending approval from the school administration."
+                : ""
+            }`
 
-    await createNotification(
-      user.id,
-      "Welcome to EduTrack!",
-      welcomeMessage,
-      "GENERAL",
-    )
+    await createNotification(user.id, "Welcome to EduTrack!", welcomeMessage, "GENERAL")
 
     logger.info("User registered", {
       userId: user.id,
       role: user.role,
       schoolId: data.schoolId,
       isSuperAdmin: user.role === "SUPER_ADMIN",
+      isParent: user.role === "PARENT",
     })
 
     res.status(201).json({
@@ -266,8 +266,9 @@ export const register = async (req: AuthRequest, res: Response) => {
         id: user.id,
         email: user.email,
         role: user.role,
-        needsApproval: ["PRINCIPAL", "TEACHER", "PARENT"].includes(user.role),
+        needsApproval: ["PRINCIPAL", "TEACHER"].includes(user.role),
         isSuperAdmin: user.role === "SUPER_ADMIN",
+        isParent: user.role === "PARENT",
       },
       accessToken,
       refreshToken,
@@ -291,7 +292,7 @@ export const login = async (req: AuthRequest, res: Response) => {
         schoolAdmin: { include: { school: true } },
         principal: { include: { school: true, approval: true } },
         teacher: { include: { school: true, approval: true } },
-        parent: { include: { school: true } },
+        parent: true, // Parent doesn't have a single school relationship
       },
     })
 
@@ -315,31 +316,32 @@ export const login = async (req: AuthRequest, res: Response) => {
     let approvalStatus = null
     let school = null
 
-    // SUPER_ADMIN doesn't have school associations
+    // SUPER_ADMIN and PARENT don't have single school associations
     if (user.role === "SUPER_ADMIN") {
       school = null
       approvalStatus = "APPROVED" // SUPER_ADMIN is automatically approved
+    } else if (user.role === "PARENT") {
+      school = null
+      approvalStatus = user.parent?.verificationStatus || "PENDING"
     } else if (user.principal) {
       school = user.principal.school
       approvalStatus = user.principal.approval?.status || "PENDING"
     } else if (user.teacher) {
       school = user.teacher.school
       approvalStatus = user.teacher.approval?.status || "PENDING"
-    } else if (user.parent) {
-      school = user.parent.school
-      approvalStatus = user.parent.verificationStatus
     } else if (user.schoolAdmin) {
       school = user.schoolAdmin.school
+      approvalStatus = "APPROVED" // School admins are automatically approved
     }
 
-    // Check if school is verified (except for super admin)
-    if (school && !school.isVerified && user.role !== "SUPER_ADMIN") {
+    // Check if school is verified (except for super admin and parent)
+    if (school && !school.isVerified && !["SUPER_ADMIN", "PARENT"].includes(user.role)) {
       return res.status(403).json({
         message: "School is not verified. Please contact support.",
       })
     }
 
-    // Generate tokens with school context (SUPER_ADMIN won't have school context)
+    // Generate tokens with school context (SUPER_ADMIN and PARENT won't have school context)
     let tokenPayload: JwtPayload = { id: user.id, role: user.role }
     if (school) {
       tokenPayload = {
@@ -366,11 +368,40 @@ export const login = async (req: AuthRequest, res: Response) => {
       data: { lastLogin: new Date() },
     })
 
+    // For parents, get summary of their children across schools
+    let childrenSummary = null
+    if (user.role === "PARENT") {
+      const children = await prisma.student.findMany({
+        where: { parentId: user.id },
+        include: {
+          school: { select: { id: true, name: true } },
+        },
+      })
+
+      const schoolsMap = new Map()
+      children.forEach((child) => {
+        if (!schoolsMap.has(child.school.id)) {
+          schoolsMap.set(child.school.id, {
+            school: child.school,
+            childrenCount: 0,
+          })
+        }
+        schoolsMap.get(child.school.id).childrenCount++
+      })
+
+      childrenSummary = {
+        totalChildren: children.length,
+        schoolsCount: schoolsMap.size,
+        schools: Array.from(schoolsMap.values()),
+      }
+    }
+
     logger.info("User logged in", {
       userId: user.id,
       role: user.role,
       schoolId: school?.id,
       isSuperAdmin: user.role === "SUPER_ADMIN",
+      isParent: user.role === "PARENT",
     })
 
     res.status(200).json({
@@ -386,6 +417,8 @@ export const login = async (req: AuthRequest, res: Response) => {
         approvalStatus,
         profileImageUrl: user.profileImageUrl,
         isSuperAdmin: user.role === "SUPER_ADMIN",
+        isParent: user.role === "PARENT",
+        ...(childrenSummary && { childrenSummary }),
       },
       accessToken,
       refreshToken,
@@ -427,7 +460,7 @@ export const refreshToken = async (req: AuthRequest, res: Response) => {
         schoolAdmin: { include: { school: true } },
         principal: { include: { school: true } },
         teacher: { include: { school: true } },
-        parent: { include: { school: true } },
+        parent: true, // Parent doesn't have a single school
       },
     })
 
@@ -436,13 +469,12 @@ export const refreshToken = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: "User not found" })
     }
 
-    // Update school context if needed (SUPER_ADMIN won't have school context)
+    // Update school context if needed (SUPER_ADMIN and PARENT won't have school context)
     let school = null
-    if (user.role !== "SUPER_ADMIN") {
+    if (!["SUPER_ADMIN", "PARENT"].includes(user.role)) {
       if (user.schoolAdmin) school = user.schoolAdmin.school
       else if (user.principal) school = user.principal.school
       else if (user.teacher) school = user.teacher.school
-      else if (user.parent) school = user.parent.school
     }
 
     let tokenPayload: JwtPayload = { id: user.id, role: user.role }
@@ -464,9 +496,10 @@ export const refreshToken = async (req: AuthRequest, res: Response) => {
       data: { lastUsed: new Date() },
     })
 
-    logger.info("Access token refreshed", { 
+    logger.info("Access token refreshed", {
       userId: user.id,
-      isSuperAdmin: user.role === "SUPER_ADMIN"
+      isSuperAdmin: user.role === "SUPER_ADMIN",
+      isParent: user.role === "PARENT",
     })
     res.status(200).json({
       message: "Token refreshed successfully",

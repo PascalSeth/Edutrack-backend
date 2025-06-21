@@ -120,7 +120,7 @@ export const getEventById = async (req: AuthRequest, res: Response) => {
         },
         rsvps: {
           include: {
-            // Note: We'll need to add a User relation to EventRSVP in the schema
+            user: { select: { name: true, surname: true, email: true } },
           },
         },
       },
@@ -215,12 +215,14 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       })
       notificationTargets = students.map((s) => s.parent.user.id)
     } else {
-      // Notify all parents in the school
-      const parents = await prisma.parent.findMany({
+      // Notify all parents in the school - need to find parents through their children
+      const students = await prisma.student.findMany({
         where: { schoolId: req.user!.schoolId! },
-        include: { user: true },
+        include: { parent: { include: { user: true } } },
       })
-      notificationTargets = parents.map((p) => p.user.id)
+      // Remove duplicates using Set
+      const uniqueParentIds = new Set(students.map((s) => s.parent.user.id))
+      notificationTargets = Array.from(uniqueParentIds)
     }
 
     // Send notifications
@@ -481,12 +483,14 @@ export const getEventRSVPs = async (req: AuthRequest, res: Response) => {
       where: { id, ...filter },
       include: {
         rsvps: {
-          // We need to add User relation to EventRSVP in schema
+          include: {
+            user: { select: { name: true, surname: true, email: true, role: true } },
+          },
           select: {
             id: true,
             response: true,
             respondedAt: true,
-            userId: true,
+            user: true,
           },
         },
       },
@@ -495,26 +499,6 @@ export const getEventRSVPs = async (req: AuthRequest, res: Response) => {
     if (!event) {
       return res.status(404).json({ message: "Event not found or access denied" })
     }
-
-    // Get user details for RSVPs
-    const userIds = event.rsvps.map((rsvp) => rsvp.userId)
-    const users = await prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: {
-        id: true,
-        name: true,
-        surname: true,
-        email: true,
-        role: true,
-      },
-    })
-
-    const userMap = new Map(users.map((user) => [user.id, user]))
-
-    const rsvpsWithUsers = event.rsvps.map((rsvp) => ({
-      ...rsvp,
-      user: userMap.get(rsvp.userId),
-    }))
 
     const summary = {
       total: event.rsvps.length,
@@ -537,7 +521,7 @@ export const getEventRSVPs = async (req: AuthRequest, res: Response) => {
         startTime: event.startTime,
         rsvpRequired: event.rsvpRequired,
       },
-      rsvps: rsvpsWithUsers,
+      rsvps: event.rsvps,
       summary,
     })
   } catch (error) {

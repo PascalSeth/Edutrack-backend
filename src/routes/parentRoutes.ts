@@ -1,14 +1,40 @@
-// src/routes/parentRoutes.ts
-import { Router } from 'express';
-import { getParents, getParentById, createParent, updateParent, deleteParent } from '../controllers/parentController';
-import { authMiddleware } from '../utils/setup';
+import { Router } from "express"
+import {
+  getParents,
+  getParentById,
+  createParent,
+  updateParent,
+  deleteParent,
+  getParentChildrenAcrossSchools,
+  getParentsBySchool,
+} from "../controllers/parentController"
+import { authMiddleware } from "../utils/setup"
 
-const router = Router();
+const router = Router()
 
-router.get('/', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL', 'TEACHER']), getParents);
-router.get('/:id', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL', 'TEACHER', 'PARENT']), getParentById);
-router.post('/', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL']), createParent);
-router.put('/:id', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL']), updateParent);
-router.delete('/:id', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL']), deleteParent);
+// Get all parents (with tenant filtering)
+router.get("/", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getParents)
 
-export default router;
+// Get parents by specific school
+router.get("/by-school", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), getParentsBySchool)
+
+// Get parent by ID
+router.get("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER", "PARENT"]), getParentById)
+
+// Get parent's children across all schools
+router.get(
+  "/:id/children",
+  authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "PARENT"]),
+  getParentChildrenAcrossSchools,
+)
+
+// Create parent
+router.post("/", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), createParent)
+
+// Update parent
+router.put("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "PARENT"]), updateParent)
+
+// Delete parent
+router.delete("/:id", authMiddleware(["SUPER_ADMIN"]), deleteParent)
+
+export default router

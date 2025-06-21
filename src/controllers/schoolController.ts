@@ -99,7 +99,7 @@ export const getSchools = async (req: AuthRequest, res: Response) => {
             select: {
               students: true,
               teachers: true,
-              parents: true,
+              // Removed 'parents' as it doesn't exist as a direct relation on School
             },
           },
         },
@@ -150,7 +150,7 @@ export const getSchoolById = async (req: AuthRequest, res: Response) => {
           select: {
             students: true,
             teachers: true,
-            parents: true,
+            // Removed 'parents' as it doesn't exist as a direct relation
             classes: true,
             grades: true,
           },
@@ -545,7 +545,7 @@ export const getSchoolStats = async (req: AuthRequest, res: Response) => {
           select: {
             students: true,
             teachers: true,
-            parents: true,
+            // Removed 'parents' as it doesn't exist as direct relation
             classes: true,
             grades: true,
             subjects: true,
@@ -560,6 +560,17 @@ export const getSchoolStats = async (req: AuthRequest, res: Response) => {
     if (!school) {
       return res.status(404).json({ message: "School not found" })
     }
+
+    // Get parent count separately through students
+    const parentCount = await prisma.parent.count({
+      where: {
+        children: {
+          some: {
+            schoolId: id,
+          },
+        },
+      },
+    })
 
     // Get additional stats
     const [totalRevenue, pendingPayments, recentActivity] = await Promise.all([
@@ -581,7 +592,15 @@ export const getSchoolStats = async (req: AuthRequest, res: Response) => {
           user: {
             OR: [
               { teacher: { schoolId: id } },
-              { parent: { schoolId: id } },
+              { 
+                parent: { 
+                  children: { 
+                    some: { 
+                      schoolId: id 
+                    } 
+                  } 
+                } 
+              },
               { principal: { schoolId: id } },
               { schoolAdmin: { schoolId: id } },
             ],
@@ -600,7 +619,10 @@ export const getSchoolStats = async (req: AuthRequest, res: Response) => {
         registrationStatus: school.registrationStatus,
         isVerified: school.isVerified,
       },
-      counts: school._count,
+      counts: {
+        ...school._count,
+        parents: parentCount, // Add parent count separately
+      },
       financial: {
         totalRevenue: totalRevenue._sum.amount || 0,
         pendingPayments,

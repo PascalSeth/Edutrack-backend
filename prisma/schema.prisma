@@ -86,7 +86,6 @@ model School {
   schoolAdmin     SchoolAdmin?
   principals      Principal[]
   teachers        Teacher[]
-  parents         Parent[]
   students        Student[]
   grades          Grade[]
   classes         Class[]
@@ -185,26 +184,22 @@ model Teacher {
   uploadedResults Result[]        @relation("ResultUploader")
 }
 
-// Enhanced Parent model with child verification
+// Enhanced Parent model - removed school constraint to allow multi-school children
 model Parent {
   id              String    @id @default(uuid())
   user            User      @relation(fields: [id], references: [id], onDelete: Cascade)
-  
-  // School relationship
-  schoolId        String
-  school          School    @relation(fields: [schoolId], references: [id])
   
   // Verification status
   verificationStatus VerificationStatus @default(PENDING)
   verifiedAt      DateTime?
   
-  // Parent relationships
+  // Parent relationships - children can be in different schools
   children        Student[]
   payments        Payment[]
   feedbacks       ParentFeedback[]
 }
 
-// Enhanced Student model
+// Enhanced Student model with parent-school relationship
 model Student {
   id              String    @id @default(uuid())
   registrationNumber String  @unique
@@ -216,9 +211,11 @@ model Student {
   sex             UserSex?
   birthday        DateTime?
   
-  // School and parent relationships
+  // School relationship
   schoolId        String
   school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Parent relationship
   parentId        String
   parent          Parent    @relation(fields: [parentId], references: [id])
   
@@ -232,6 +229,10 @@ model Student {
   attendances     Attendance[]
   results         Result[]
   assignmentSubmissions AssignmentSubmission[]
+  
+  // Verification status for parent-student relationship
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt      DateTime?
 }
 
 // Approval system for various entities

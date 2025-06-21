@@ -40,3 +40,6 @@
 {"errors":[{"code":"invalid_string","message":"Invalid email","path":["email"],"validation":"email"}],"level":"warn","message":"Invalid input for login","timestamp":"2025-06-21T00:15:13.545Z"}
 {"error":{},"level":"error","message":"Failed to login","timestamp":"2025-06-21T00:15:43.258Z"}
 {"error":{},"level":"error","message":"Failed to login","timestamp":"2025-06-21T00:16:10.719Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-06-21T00:23:51.399Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-06-21T12:54:15.768Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","timestamp":"2025-06-21T12:58:23.278Z"}

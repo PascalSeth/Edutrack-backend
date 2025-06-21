@@ -16,6 +16,8 @@ import eventRouter from "./routes/eventRoutes"
 import analyticsRouter from "./routes/analyticsRoutes"
 import notificationRouter from "./routes/notificationRoutes"
 import subjectRouter from "./routes/subjectRoutes"
+import dashboardRouter from "./routes/dashboardRoutes"
+import multiTenantRouter from "./routes/multiTenantRoutes"
 
 dotenv.config()
 
@@ -23,7 +25,7 @@ const app: Express = express()
 
 // Middleware
 app.use(cors())
-app.use(express.json({ limit: '10mb' })) // Add size limit to prevent memory issues
+app.use(express.json({ limit: "10mb" })) // Add size limit to prevent memory issues
 
 // Health check route - should be before other routes
 app.get("/", (req, res) => {
@@ -49,6 +51,8 @@ app.use("/api/events", eventRouter)
 app.use("/api/analytics", analyticsRouter)
 app.use("/api/notifications", notificationRouter)
 app.use("/api/subjects", subjectRouter)
+app.use("/api/dashboard", dashboardRouter)
+app.use("/api/multi-tenant", multiTenantRouter)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -61,25 +65,25 @@ app.use("*", (req, res) => {
   res.status(404).json({ message: "Route not found" })
 })
 
-const PORT = parseInt(process.env.PORT || '3000', 10)
-const server = app.listen(PORT, '0.0.0.0', () => {
+const PORT = Number.parseInt(process.env.PORT || "3000", 10)
+const server = app.listen(PORT, "0.0.0.0", () => {
   logger.info(`Server running on port ${PORT}`)
   console.log(`Server running on port ${PORT}`) // Console log for Render to detect
 })
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully')
+process.on("SIGTERM", () => {
+  logger.info("SIGTERM received, shutting down gracefully")
   server.close(() => {
-    logger.info('Server closed')
+    logger.info("Server closed")
     process.exit(0)
   })
 })
 
-process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully')
+process.on("SIGINT", () => {
+  logger.info("SIGINT received, shutting down gracefully")
   server.close(() => {
-    logger.info('Server closed')
+    logger.info("Server closed")
     process.exit(0)
   })
 })
