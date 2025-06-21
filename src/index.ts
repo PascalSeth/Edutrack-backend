@@ -24,36 +24,17 @@ dotenv.config()
 
 const app: Express = express()
 
-// Trust proxy for Render
-app.set("trust proxy", 1)
-
-// Middleware with memory optimizations
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "*",
-    credentials: true,
-  }),
-)
-app.use(express.json({ limit: "5mb" })) // Reduced from 10mb
-app.use(express.urlencoded({ extended: true, limit: "5mb" }))
+// Middleware
+app.use(cors())
+app.use(express.json({ limit: "10mb" }))
 
 // Health check route - should be before other routes
 app.get("/", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "Edutrack Backend API",
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || "development",
-  })
+  res.json({ status: "ok", message: "Edutrack Backend API" })
 })
 
 app.get("/health", (req, res) => {
-  res.json({
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
-  })
+  res.json({ status: "healthy", timestamp: new Date().toISOString() })
 })
 
 // API Routes
@@ -91,73 +72,43 @@ const PORT = Number.parseInt(process.env.PORT || "10000", 10)
 // Add error handling for server startup
 const server = app.listen(PORT, "0.0.0.0", () => {
   logger.info(`Server running on port ${PORT}`)
-  console.log(`✅ Server running on port ${PORT}`)
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || "development"}`)
-  console.log(`📊 Memory usage:`, process.memoryUsage())
+  console.log(`Server running on port ${PORT}`)
+  console.log(`Server is binding to 0.0.0.0:${PORT}`) // Extra logging for Render
 })
 
 // Handle server startup errors
-server.on("error", (error: any) => {
-  logger.error("Server startup error:", error)
-  console.error("❌ Server startup error:", error)
+server.on('error', (error: any) => {
+  logger.error('Server startup error:', error)
+  console.error('Server startup error:', error)
   process.exit(1)
 })
 
 // Graceful shutdown
-const gracefulShutdown = (signal: string) => {
-  logger.info(`${signal} received, shutting down gracefully`)
-  console.log(`🔄 ${signal} received, shutting down gracefully`)
-
+process.on("SIGTERM", () => {
+  logger.info("SIGTERM received, shutting down gracefully")
   server.close(() => {
     logger.info("Server closed")
-    console.log("✅ Server closed")
     process.exit(0)
   })
-
-  // Force close after 10 seconds
-  setTimeout(() => {
-    logger.error("Could not close connections in time, forcefully shutting down")
-    console.error("❌ Could not close connections in time, forcefully shutting down")
-    process.exit(1)
-  }, 10000)
-}
-
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"))
-process.on("SIGINT", () => gracefulShutdown("SIGINT"))
-
-// Handle uncaught exceptions with memory cleanup
-process.on("uncaughtException", (error) => {
-  logger.error("Uncaught Exception:", error)
-  console.error("❌ Uncaught Exception:", error)
-
-  // Attempt graceful shutdown
-  gracefulShutdown("UNCAUGHT_EXCEPTION")
 })
 
-process.on("unhandledRejection", (reason, promise) => {
-  logger.error("Unhandled Rejection at:", promise, "reason:", reason)
-  console.error("❌ Unhandled Rejection at:", promise, "reason:", reason)
-
-  // Attempt graceful shutdown
-  gracefulShutdown("UNHANDLED_REJECTION")
+process.on("SIGINT", () => {
+  logger.info("SIGINT received, shutting down gracefully")
+  server.close(() => {
+    logger.info("Server closed")
+    process.exit(0)
+  })
 })
 
-// Memory monitoring
-if (process.env.NODE_ENV === "production") {
-  setInterval(() => {
-    const memUsage = process.memoryUsage()
-    const memUsageMB = {
-      rss: Math.round(memUsage.rss / 1024 / 1024),
-      heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
-      heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
-      external: Math.round(memUsage.external / 1024 / 1024),
-    }
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error)
+  console.error('Uncaught Exception:', error)
+  process.exit(1)
+})
 
-    logger.info("Memory usage (MB):", memUsageMB)
-
-    // Warning if heap usage is high
-    if (memUsageMB.heapUsed > 400) {
-      logger.warn("High memory usage detected", memUsageMB)
-    }
-  }, 60000) // Check every minute
-}
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason)
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+  process.exit(1)
+})
