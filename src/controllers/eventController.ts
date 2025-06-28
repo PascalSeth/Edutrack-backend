@@ -1,9 +1,7 @@
 import type { Response, Request } from "express"
 import { z } from "zod"
 import { prisma, type AuthRequest, handleError, logger, getTenantFilter, createNotification } from "../utils/setup"
-import { FileUploadService } from "../utils/fileUpload"
-import { FileCategory } from "@prisma/client"
-import type { Express } from "express"
+import { supabase } from "../config/supabase"
 
 // Validation Schemas
 const createEventSchema = z.object({
@@ -358,21 +356,43 @@ export const uploadEventImages = async (req: AuthRequest & Request, res: Respons
       return res.status(404).json({ message: "Event not found or access denied" })
     }
 
-    // Upload files
+    // Upload files directly to Supabase
     const uploadPromises = req.files.map(async (file: Express.Multer.File, index: number) => {
-      return FileUploadService.uploadFile({
-        file: file.buffer,
-        fileName: `event-${event.title.replace(/\s+/g, "-")}-${index + 1}-${file.originalname}`,
-        mimeType: file.mimetype,
-        bucket: FileUploadService.getBucketForCategory(FileCategory.EVENT_IMAGE),
-        schoolId: req.user!.schoolId,
-        uploadedById: req.user!.id,
-        category: FileCategory.EVENT_IMAGE,
+      const fileName = `event-${event.title.replace(/\s+/g, "-")}-${index + 1}-${Date.now()}-${file.originalname}`
+
+      const { data: imageData, error: uploadError } = await supabase.storage
+        .from("events")
+        .upload(`/${req.user!.schoolId}/${fileName}`, file.buffer, {
+          cacheControl: "2592000",
+          contentType: file.mimetype,
+        })
+
+      if (uploadError) {
+        throw new Error(uploadError.message)
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage.from("events").getPublicUrl(imageData.path)
+
+      // Save file record to database
+      await prisma.fileStorage.create({
+        data: {
+          fileName: fileName,
+          originalName: file.originalname,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          fileUrl: urlData.publicUrl,
+          bucketName: "events",
+          uploadedById: req.user!.id,
+          schoolId: req.user!.schoolId,
+          fileCategory: "EVENT_IMAGE",
+        },
       })
+
+      return urlData.publicUrl
     })
 
-    const uploadResults = await Promise.all(uploadPromises)
-    const imageUrls = uploadResults.map((result) => result.fileUrl)
+    const imageUrls = await Promise.all(uploadPromises)
 
     // Update event with image URLs
     const updatedEvent = await prisma.event.update({

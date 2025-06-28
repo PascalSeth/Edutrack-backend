@@ -3,8 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getStudentAssignments = exports.submitAssignment = exports.uploadAssignmentFiles = exports.deleteAssignment = exports.updateAssignment = exports.createAssignment = exports.getAssignmentById = exports.getAssignments = void 0;
 const zod_1 = require("zod");
 const setup_1 = require("../utils/setup");
-const fileUpload_1 = require("../utils/fileUpload");
-const client_1 = require("@prisma/client");
+const supabase_1 = require("../config/supabase");
 // Validation Schemas
 const createAssignmentSchema = zod_1.z.object({
     title: zod_1.z.string().min(1, "Title is required"),
@@ -294,20 +293,37 @@ const uploadAssignmentFiles = async (req, res) => {
         if (!assignment) {
             return res.status(404).json({ message: "Assignment not found or access denied" });
         }
-        // Upload files
+        // Upload files directly to Supabase
         const uploadPromises = req.files.map(async (file, index) => {
-            return fileUpload_1.FileUploadService.uploadFile({
-                file: file.buffer,
-                fileName: `assignment-${assignment.title.replace(/\s+/g, "-")}-${index + 1}-${file.originalname}`,
-                mimeType: file.mimetype,
-                bucket: fileUpload_1.FileUploadService.getBucketForCategory(client_1.FileCategory.ASSIGNMENT),
-                schoolId: req.user.schoolId,
-                uploadedById: req.user.id,
-                category: client_1.FileCategory.ASSIGNMENT,
+            const fileName = `assignment-${assignment.title.replace(/\s+/g, "-")}-${index + 1}-${Date.now()}-${file.originalname}`;
+            const { data: fileData, error: uploadError } = await supabase_1.supabase.storage
+                .from("assignments")
+                .upload(`/${req.user.schoolId}/${fileName}`, file.buffer, {
+                cacheControl: "2592000",
+                contentType: file.mimetype,
             });
+            if (uploadError) {
+                throw new Error(uploadError.message);
+            }
+            // Get public URL
+            const { data: urlData } = supabase_1.supabase.storage.from("assignments").getPublicUrl(fileData.path);
+            // Save file record to database
+            await setup_1.prisma.fileStorage.create({
+                data: {
+                    fileName: fileName,
+                    originalName: file.originalname,
+                    fileSize: file.size,
+                    mimeType: file.mimetype,
+                    fileUrl: urlData.publicUrl,
+                    bucketName: "assignments",
+                    uploadedById: req.user.id,
+                    schoolId: req.user.schoolId,
+                    fileCategory: "ASSIGNMENT",
+                },
+            });
+            return urlData.publicUrl;
         });
-        const uploadResults = await Promise.all(uploadPromises);
-        const documentUrls = uploadResults.map((result) => result.fileUrl);
+        const documentUrls = await Promise.all(uploadPromises);
         // Update assignment with document URLs
         const updatedAssignment = await setup_1.prisma.assignment.update({
             where: { id },
@@ -373,18 +389,35 @@ const submitAssignment = async (req, res) => {
         let submissionUrls = [];
         if (req.files && Array.isArray(req.files) && req.files.length > 0) {
             const uploadPromises = req.files.map(async (file, index) => {
-                return fileUpload_1.FileUploadService.uploadFile({
-                    file: file.buffer,
-                    fileName: `submission-${student.name}-${assignment.title}-${index + 1}-${file.originalname}`,
-                    mimeType: file.mimetype,
-                    bucket: fileUpload_1.FileUploadService.getBucketForCategory(client_1.FileCategory.ASSIGNMENT),
-                    schoolId: req.user.schoolId,
-                    uploadedById: req.user.id,
-                    category: client_1.FileCategory.ASSIGNMENT,
+                const fileName = `submission-${student.name}-${assignment.title}-${index + 1}-${Date.now()}-${file.originalname}`;
+                const { data: fileData, error: uploadError } = await supabase_1.supabase.storage
+                    .from("assignments")
+                    .upload(`/${student.schoolId}/submissions/${fileName}`, file.buffer, {
+                    cacheControl: "2592000",
+                    contentType: file.mimetype,
                 });
+                if (uploadError) {
+                    throw new Error(uploadError.message);
+                }
+                // Get public URL
+                const { data: urlData } = supabase_1.supabase.storage.from("assignments").getPublicUrl(fileData.path);
+                // Save file record to database
+                await setup_1.prisma.fileStorage.create({
+                    data: {
+                        fileName: fileName,
+                        originalName: file.originalname,
+                        fileSize: file.size,
+                        mimeType: file.mimetype,
+                        fileUrl: urlData.publicUrl,
+                        bucketName: "assignments",
+                        uploadedById: req.user.id,
+                        schoolId: student.schoolId,
+                        fileCategory: "ASSIGNMENT",
+                    },
+                });
+                return urlData.publicUrl;
             });
-            const uploadResults = await Promise.all(uploadPromises);
-            submissionUrls = uploadResults.map((result) => result.fileUrl);
+            submissionUrls = await Promise.all(uploadPromises);
         }
         // Create or update submission
         const submission = await setup_1.prisma.assignmentSubmission.upsert({

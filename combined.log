@@ -47,3 +47,6 @@
 {"level":"info","message":"Server running on port 10000","timestamp":"2025-06-21T15:34:50.104Z"}
 {"level":"info","message":"Server running on port 10000","timestamp":"2025-06-21T15:42:36.362Z"}
 {"level":"info","message":"SIGINT received, shutting down gracefully","timestamp":"2025-06-21T15:44:56.306Z"}
+{"level":"info","message":"Server running on port 10000","timestamp":"2025-06-28T09:42:44.997Z"}
+{"level":"info","message":"Server running on port 10000","timestamp":"2025-06-28T13:39:44.708Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","timestamp":"2025-06-28T13:39:46.682Z"}

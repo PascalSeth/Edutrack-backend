@@ -3,8 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUpcomingEvents = exports.getEventRSVPs = exports.rsvpToEvent = exports.uploadEventImages = exports.deleteEvent = exports.updateEvent = exports.createEvent = exports.getEventById = exports.getEvents = void 0;
 const zod_1 = require("zod");
 const setup_1 = require("../utils/setup");
-const fileUpload_1 = require("../utils/fileUpload");
-const client_1 = require("@prisma/client");
+const supabase_1 = require("../config/supabase");
 // Validation Schemas
 const createEventSchema = zod_1.z.object({
     title: zod_1.z.string().min(1, "Title is required"),
@@ -319,20 +318,37 @@ const uploadEventImages = async (req, res) => {
         if (!event) {
             return res.status(404).json({ message: "Event not found or access denied" });
         }
-        // Upload files
+        // Upload files directly to Supabase
         const uploadPromises = req.files.map(async (file, index) => {
-            return fileUpload_1.FileUploadService.uploadFile({
-                file: file.buffer,
-                fileName: `event-${event.title.replace(/\s+/g, "-")}-${index + 1}-${file.originalname}`,
-                mimeType: file.mimetype,
-                bucket: fileUpload_1.FileUploadService.getBucketForCategory(client_1.FileCategory.EVENT_IMAGE),
-                schoolId: req.user.schoolId,
-                uploadedById: req.user.id,
-                category: client_1.FileCategory.EVENT_IMAGE,
+            const fileName = `event-${event.title.replace(/\s+/g, "-")}-${index + 1}-${Date.now()}-${file.originalname}`;
+            const { data: imageData, error: uploadError } = await supabase_1.supabase.storage
+                .from("events")
+                .upload(`/${req.user.schoolId}/${fileName}`, file.buffer, {
+                cacheControl: "2592000",
+                contentType: file.mimetype,
             });
+            if (uploadError) {
+                throw new Error(uploadError.message);
+            }
+            // Get public URL
+            const { data: urlData } = supabase_1.supabase.storage.from("events").getPublicUrl(imageData.path);
+            // Save file record to database
+            await setup_1.prisma.fileStorage.create({
+                data: {
+                    fileName: fileName,
+                    originalName: file.originalname,
+                    fileSize: file.size,
+                    mimeType: file.mimetype,
+                    fileUrl: urlData.publicUrl,
+                    bucketName: "events",
+                    uploadedById: req.user.id,
+                    schoolId: req.user.schoolId,
+                    fileCategory: "EVENT_IMAGE",
+                },
+            });
+            return urlData.publicUrl;
         });
-        const uploadResults = await Promise.all(uploadPromises);
-        const imageUrls = uploadResults.map((result) => result.fileUrl);
+        const imageUrls = await Promise.all(uploadPromises);
         // Update event with image URLs
         const updatedEvent = await setup_1.prisma.event.update({
             where: { id },

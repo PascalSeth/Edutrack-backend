@@ -3,8 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSchoolStats = exports.deleteSchool = exports.uploadAccreditationDocuments = exports.uploadSchoolLogo = exports.verifySchool = exports.updateSchool = exports.registerSchool = exports.getSchoolById = exports.getSchools = void 0;
 const zod_1 = require("zod");
 const setup_1 = require("../utils/setup");
-const fileUpload_1 = require("../utils/fileUpload");
-const client_1 = require("@prisma/client");
+const supabase_1 = require("../config/supabase");
 // Validation Schemas
 const registerSchoolSchema = zod_1.z.object({
     name: zod_1.z.string().min(1, "School name is required"),
@@ -358,32 +357,48 @@ const uploadSchoolLogo = async (req, res) => {
         if (!school) {
             return res.status(404).json({ message: "School not found" });
         }
-        // Upload logo to Supabase
-        const uploadResult = await fileUpload_1.FileUploadService.uploadFile({
-            file: req.file.buffer,
-            fileName: `logo-${school.name.replace(/\s+/g, "-").toLowerCase()}.${req.file.originalname.split(".").pop()}`,
-            mimeType: req.file.mimetype,
-            bucket: fileUpload_1.FileUploadService.getBucketForCategory(client_1.FileCategory.SCHOOL_LOGO),
-            schoolId: school.id,
-            uploadedById: req.user.id,
-            category: client_1.FileCategory.SCHOOL_LOGO,
+        // Upload logo directly to Supabase
+        const { data: logoData, error: uploadError } = await supabase_1.supabase.storage
+            .from("school-documents")
+            .upload(`/logos/${req.file.originalname}-${Date.now()}`, req.file.buffer, {
+            cacheControl: "2592000",
+            contentType: req.file.mimetype,
         });
+        if (uploadError) {
+            throw new Error(uploadError.message);
+        }
+        // Get public URL
+        const { data: urlData } = supabase_1.supabase.storage.from("school-documents").getPublicUrl(logoData.path);
         // Update school with new logo URL
         const updatedSchool = await setup_1.prisma.school.update({
             where: { id },
             data: {
-                logoUrl: uploadResult.fileUrl,
+                logoUrl: urlData.publicUrl,
                 updatedAt: new Date(),
+            },
+        });
+        // Save file record to database
+        await setup_1.prisma.fileStorage.create({
+            data: {
+                fileName: logoData.path.split("/").pop() || req.file.originalname,
+                originalName: req.file.originalname,
+                fileSize: req.file.size,
+                mimeType: req.file.mimetype,
+                fileUrl: urlData.publicUrl,
+                bucketName: "school-documents",
+                uploadedById: req.user.id,
+                schoolId: school.id,
+                fileCategory: "SCHOOL_LOGO",
             },
         });
         setup_1.logger.info("School logo uploaded", {
             userId: req.user?.id,
             schoolId: id,
-            logoUrl: uploadResult.fileUrl,
+            logoUrl: urlData.publicUrl,
         });
         res.status(200).json({
             message: "School logo uploaded successfully",
-            logoUrl: uploadResult.fileUrl,
+            logoUrl: urlData.publicUrl,
             school: updatedSchool,
         });
     }
@@ -407,18 +422,34 @@ const uploadAccreditationDocuments = async (req, res) => {
         }
         // Upload all documents
         const uploadPromises = req.files.map(async (file, index) => {
-            return fileUpload_1.FileUploadService.uploadFile({
-                file: file.buffer,
-                fileName: `accreditation-${index + 1}-${file.originalname}`,
-                mimeType: file.mimetype,
-                bucket: fileUpload_1.FileUploadService.getBucketForCategory(client_1.FileCategory.ACCREDITATION),
-                schoolId: school.id,
-                uploadedById: req.user.id,
-                category: client_1.FileCategory.ACCREDITATION,
+            const { data: docData, error: uploadError } = await supabase_1.supabase.storage
+                .from("school-documents")
+                .upload(`/accreditation/${school.id}/document-${index + 1}-${Date.now()}-${file.originalname}`, file.buffer, {
+                cacheControl: "2592000",
+                contentType: file.mimetype,
             });
+            if (uploadError) {
+                throw new Error(uploadError.message);
+            }
+            // Get public URL
+            const { data: urlData } = supabase_1.supabase.storage.from("school-documents").getPublicUrl(docData.path);
+            // Save file record to database
+            await setup_1.prisma.fileStorage.create({
+                data: {
+                    fileName: docData.path.split("/").pop() || file.originalname,
+                    originalName: file.originalname,
+                    fileSize: file.size,
+                    mimeType: file.mimetype,
+                    fileUrl: urlData.publicUrl,
+                    bucketName: "school-documents",
+                    uploadedById: req.user.id,
+                    schoolId: school.id,
+                    fileCategory: "ACCREDITATION",
+                },
+            });
+            return urlData.publicUrl;
         });
-        const uploadResults = await Promise.all(uploadPromises);
-        const documentUrls = uploadResults.map((result) => result.fileUrl);
+        const documentUrls = await Promise.all(uploadPromises);
         // Update school with accreditation documents
         const updatedSchool = await setup_1.prisma.school.update({
             where: { id },
@@ -538,10 +569,10 @@ const getSchoolStats = async (req, res) => {
                                 parent: {
                                     children: {
                                         some: {
-                                            schoolId: id
-                                        }
-                                    }
-                                }
+                                            schoolId: id,
+                                        },
+                                    },
+                                },
                             },
                             { principal: { schoolId: id } },
                             { schoolAdmin: { schoolId: id } },

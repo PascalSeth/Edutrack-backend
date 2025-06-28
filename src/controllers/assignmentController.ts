@@ -1,9 +1,7 @@
 import type { Response } from "express"
 import { z } from "zod"
 import { prisma, type AuthRequest, handleError, logger, getTenantFilter, createNotification } from "../utils/setup"
-import { FileUploadService } from "../utils/fileUpload"
-import { FileCategory } from "@prisma/client"
-import type { Express } from "express"
+import { supabase } from "../config/supabase"
 
 // Validation Schemas
 const createAssignmentSchema = z.object({
@@ -328,21 +326,43 @@ export const uploadAssignmentFiles = async (req: AuthRequest, res: Response) => 
       return res.status(404).json({ message: "Assignment not found or access denied" })
     }
 
-    // Upload files
+    // Upload files directly to Supabase
     const uploadPromises = req.files.map(async (file: Express.Multer.File, index: number) => {
-      return FileUploadService.uploadFile({
-        file: file.buffer,
-        fileName: `assignment-${assignment.title.replace(/\s+/g, "-")}-${index + 1}-${file.originalname}`,
-        mimeType: file.mimetype,
-        bucket: FileUploadService.getBucketForCategory(FileCategory.ASSIGNMENT),
-        schoolId: req.user!.schoolId,
-        uploadedById: req.user!.id,
-        category: FileCategory.ASSIGNMENT,
+      const fileName = `assignment-${assignment.title.replace(/\s+/g, "-")}-${index + 1}-${Date.now()}-${file.originalname}`
+
+      const { data: fileData, error: uploadError } = await supabase.storage
+        .from("assignments")
+        .upload(`/${req.user!.schoolId}/${fileName}`, file.buffer, {
+          cacheControl: "2592000",
+          contentType: file.mimetype,
+        })
+
+      if (uploadError) {
+        throw new Error(uploadError.message)
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage.from("assignments").getPublicUrl(fileData.path)
+
+      // Save file record to database
+      await prisma.fileStorage.create({
+        data: {
+          fileName: fileName,
+          originalName: file.originalname,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          fileUrl: urlData.publicUrl,
+          bucketName: "assignments",
+          uploadedById: req.user!.id,
+          schoolId: req.user!.schoolId,
+          fileCategory: "ASSIGNMENT",
+        },
       })
+
+      return urlData.publicUrl
     })
 
-    const uploadResults = await Promise.all(uploadPromises)
-    const documentUrls = uploadResults.map((result) => result.fileUrl)
+    const documentUrls = await Promise.all(uploadPromises)
 
     // Update assignment with document URLs
     const updatedAssignment = await prisma.assignment.update({
@@ -416,19 +436,41 @@ export const submitAssignment = async (req: AuthRequest, res: Response) => {
     let submissionUrls: string[] = []
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       const uploadPromises = req.files.map(async (file: Express.Multer.File, index: number) => {
-        return FileUploadService.uploadFile({
-          file: file.buffer,
-          fileName: `submission-${student.name}-${assignment.title}-${index + 1}-${file.originalname}`,
-          mimeType: file.mimetype,
-          bucket: FileUploadService.getBucketForCategory(FileCategory.ASSIGNMENT),
-          schoolId: req.user!.schoolId,
-          uploadedById: req.user!.id,
-          category: FileCategory.ASSIGNMENT,
+        const fileName = `submission-${student.name}-${assignment.title}-${index + 1}-${Date.now()}-${file.originalname}`
+
+        const { data: fileData, error: uploadError } = await supabase.storage
+          .from("assignments")
+          .upload(`/${student.schoolId}/submissions/${fileName}`, file.buffer, {
+            cacheControl: "2592000",
+            contentType: file.mimetype,
+          })
+
+        if (uploadError) {
+          throw new Error(uploadError.message)
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage.from("assignments").getPublicUrl(fileData.path)
+
+        // Save file record to database
+        await prisma.fileStorage.create({
+          data: {
+            fileName: fileName,
+            originalName: file.originalname,
+            fileSize: file.size,
+            mimeType: file.mimetype,
+            fileUrl: urlData.publicUrl,
+            bucketName: "assignments",
+            uploadedById: req.user!.id,
+            schoolId: student.schoolId,
+            fileCategory: "ASSIGNMENT",
+          },
         })
+
+        return urlData.publicUrl
       })
 
-      const uploadResults = await Promise.all(uploadPromises)
-      submissionUrls = uploadResults.map((result) => result.fileUrl)
+      submissionUrls = await Promise.all(uploadPromises)
     }
 
     // Create or update submission
