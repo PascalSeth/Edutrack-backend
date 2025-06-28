@@ -223,13 +223,13 @@ export const registerSchool = async (req: AuthRequest, res: Response) => {
         }
 
         // Update user role to SCHOOL_ADMIN if not already
-        if (user.role !== "SCHOOL_ADMIN") {
-          await tx.user.update({
-            where: { id: data.adminUserId },
-            data: { role: "SCHOOL_ADMIN" },
-          })
-        }
-
+   // IF ADMIN IS SUPERADMIN DO NOT CHANGE ROLE
+if (user.role !== "SCHOOL_ADMIN" && user.role !== "SUPER_ADMIN") {
+  await tx.user.update({
+    where: { id: data.adminUserId },
+    data: { role: "SCHOOL_ADMIN" },
+  })
+}
         // Create school admin record
         await tx.schoolAdmin.create({
           data: {
