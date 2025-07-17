@@ -2,6 +2,7 @@ import type { Response, Request } from "express"
 import { z } from "zod"
 import { prisma, type AuthRequest, handleError, logger, getTenantFilter, createNotification } from "../utils/setup"
 import { supabase } from "../config/supabase"
+import type { Express } from "express"
 
 // Validation Schemas
 const createEventSchema = z.object({
@@ -28,7 +29,6 @@ export const getEvents = async (req: AuthRequest, res: Response) => {
     const page = Number.parseInt(req.query.page as string) || 1
     const limit = Number.parseInt(req.query.limit as string) || 10
     const skip = (page - 1) * limit
-    const filter = getTenantFilter(req.user)
 
     const eventType = req.query.eventType as string
     const classId = req.query.classId as string
@@ -36,17 +36,37 @@ export const getEvents = async (req: AuthRequest, res: Response) => {
     const startDate = req.query.startDate as string
     const endDate = req.query.endDate as string
 
-    const where: any = { ...filter }
+    let where: any = {}
 
-    if (eventType) {
-      where.eventType = eventType
+    // Apply tenant filtering based on user role
+    if (req.user?.role === "SUPER_ADMIN") {
+      // Super admin sees all events
+      where = {}
+    } else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN" || req.user?.role === "TEACHER") {
+      // School staff see events in their school
+      where = getTenantFilter(req.user)
+    } else if (req.user?.role === "PARENT") {
+      // Parents see events from schools where their children are enrolled
+      const schoolIds = await getParentSchoolIds(req.user.id)
+      where = {
+        schoolId: { in: schoolIds },
+        OR: [
+          { classId: null }, // School-wide events
+          {
+            class: {
+              students: {
+                some: { parentId: req.user.id },
+              },
+            },
+          },
+        ],
+      }
     }
-    if (classId) {
-      where.classId = classId
-    }
-    if (upcoming) {
-      where.startTime = { gte: new Date() }
-    }
+
+    // Apply additional filters
+    if (eventType) where.eventType = eventType
+    if (classId) where.classId = classId
+    if (upcoming) where.startTime = { gte: new Date() }
     if (startDate && endDate) {
       where.startTime = {
         gte: new Date(startDate),
@@ -60,6 +80,7 @@ export const getEvents = async (req: AuthRequest, res: Response) => {
         skip,
         take: limit,
         include: {
+          school: { select: { name: true } },
           class: { select: { name: true } },
           createdBy: {
             include: {
@@ -75,6 +96,7 @@ export const getEvents = async (req: AuthRequest, res: Response) => {
 
     logger.info("Events retrieved", {
       userId: req.user?.id,
+      userRole: req.user?.role,
       page,
       limit,
       total,
@@ -604,4 +626,12 @@ export const getUpcomingEvents = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     handleError(res, error, "Failed to retrieve upcoming events")
   }
+}
+
+async function getParentSchoolIds(parentId: string): Promise<string[]> {
+  const children = await prisma.student.findMany({
+    where: { parentId: parentId },
+    select: { schoolId: true },
+  })
+  return children.map((child) => child.schoolId).filter((schoolId) => schoolId !== null) as string[]
 }

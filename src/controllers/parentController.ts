@@ -12,6 +12,57 @@ const updateParentSchema = z.object({
   verificationStatus: z.enum(["PENDING", "VERIFIED", "REJECTED"]).optional(),
 })
 
+const getTenantFilter = (user: AuthRequest["user"]) => {
+  if (user?.role === "PRINCIPAL" || user?.role === "SCHOOL_ADMIN") {
+    return {
+      schoolId: user.schoolId,
+    }
+  }
+  return {}
+}
+
+const getTeacherStudentFilter = (teacherId: string, schoolId?: string) => {
+  return {
+    OR: [
+      {
+        class: { supervisorId: teacherId },
+        schoolId,
+      },
+      {
+        class: {
+          lessons: {
+            some: { teacherId },
+          },
+        },
+        schoolId,
+      },
+    ],
+  }
+}
+
+const getTeacherParentFilter = (teacherId: string, schoolId?: string) => {
+  return {
+    children: {
+      some: {
+        OR: [
+          {
+            class: { supervisorId: teacherId },
+            schoolId,
+          },
+          {
+            class: {
+              lessons: {
+                some: { teacherId },
+              },
+            },
+            schoolId,
+          },
+        ],
+      },
+    },
+  }
+}
+
 export const getParents = async (req: AuthRequest, res: Response) => {
   try {
     const page = Number.parseInt(req.query.page as string) || 1
@@ -21,7 +72,13 @@ export const getParents = async (req: AuthRequest, res: Response) => {
     let where: any = {}
 
     // Apply tenant filtering based on user role
-    if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN") {
+    if (req.user?.role === "SUPER_ADMIN") {
+      // Super admin sees all parents
+      where = {}
+    } else if (req.user?.role === "PARENT") {
+      // Parents can only see their own record
+      where = { id: req.user.id }
+    } else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN") {
       // Show parents who have children in this school
       where = {
         children: {
@@ -32,24 +89,7 @@ export const getParents = async (req: AuthRequest, res: Response) => {
       }
     } else if (req.user?.role === "TEACHER") {
       // Show parents of students in teacher's classes
-      where = {
-        children: {
-          some: {
-            OR: [
-              {
-                class: { supervisorId: req.user.id },
-              },
-              {
-                class: {
-                  lessons: {
-                    some: { teacherId: req.user.id },
-                  },
-                },
-              },
-            ],
-          },
-        },
-      }
+      where = getTeacherParentFilter(req.user.id, req.user?.schoolId)
     }
 
     const [parents, total] = await Promise.all([
@@ -69,6 +109,15 @@ export const getParents = async (req: AuthRequest, res: Response) => {
             },
           },
           children: {
+            // For non-super admins, filter children by accessible schools
+            where:
+              req.user?.role === "SUPER_ADMIN"
+                ? {}
+                : req.user?.role === "PARENT"
+                  ? {}
+                  : req.user?.role === "TEACHER"
+                    ? getTeacherStudentFilter(req.user.id, req.user?.schoolId)
+                    : getTenantFilter(req.user),
             include: {
               school: { select: { id: true, name: true } },
               class: { select: { name: true } },
@@ -90,10 +139,10 @@ export const getParents = async (req: AuthRequest, res: Response) => {
 
     logger.info("Parents retrieved", {
       userId: req.user?.id,
+      userRole: req.user?.role,
       page,
       limit,
       total,
-      userRole: req.user?.role,
     })
 
     res.status(200).json({

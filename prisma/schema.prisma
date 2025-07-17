@@ -101,6 +101,22 @@ model School {
   
   // School subscription/billing
   subscription    Subscription?
+
+  materialCategories MaterialCategory[]
+  materials       Material[]
+  materialCarts   MaterialCart[]
+  materialOrders  MaterialOrder[]
+  paymentAccount  SchoolPaymentAccount?
+  
+  // Academic Management
+  rooms           Room[]
+  timetables      Timetable[]
+  exams           Exam[]
+  gradeScales     GradeScale[]
+  curriculums     Curriculum[]
+  terms           Term[]
+  holidays        Holiday[]
+  reportCards     ReportCard[]
   
   // Multi-tenant isolation
   tenantId        String    @unique @default(uuid())
@@ -154,6 +170,8 @@ model Principal {
   createdCalendars  AcademicCalendar[]
   approvals       Approval[] @relation("ApprovedBy")
   createdEvents   Event[]    @relation("CreatedBy")
+  createdExams    Exam[]     @relation("ExamCreator")
+  approvedReportCards ReportCard[] @relation("ReportCardApprover")
 }
 
 // Enhanced Teacher model with approval workflow
@@ -182,6 +200,11 @@ model Teacher {
   examQuestions   ExamQuestion[]
   assignments     Assignment[]
   uploadedResults Result[]        @relation("ResultUploader")
+  
+  // Academic Management
+  timetableSlots  TimetableSlot[] @relation("TeacherSlots")
+  examSessions    ExamSession[]   @relation("ExamInvigilator")
+  gradedResults   Result[]        @relation("ResultGrader")
 }
 
 // Enhanced Parent model - removed school constraint to allow multi-school children
@@ -197,6 +220,12 @@ model Parent {
   children        Student[]
   payments        Payment[]
   feedbacks       ParentFeedback[]
+
+  materialCarts   MaterialCart[]
+  materialOrders  MaterialOrder[]
+  
+  // Academic Management
+  reportCardViews ReportCardView[]
 }
 
 // Enhanced Student model with parent-school relationship
@@ -230,9 +259,430 @@ model Student {
   results         Result[]
   assignmentSubmissions AssignmentSubmission[]
   
+  // Academic Management
+  examSessions    ExamSession[]
+  reportCards     ReportCard[]
+  curriculumProgress CurriculumProgress[]
+  
   // Verification status for parent-student relationship
   verificationStatus VerificationStatus @default(PENDING)
   verifiedAt      DateTime?
+}
+
+// ACADEMIC MANAGEMENT MODELS
+
+// Room/Venue Management
+model Room {
+  id              String    @id @default(uuid())
+  name            String
+  code            String?
+  capacity        Int
+  roomType        RoomType  @default(CLASSROOM)
+  floor           String?
+  building        String?
+  facilities      String[]  // Array of facilities like "Projector", "AC", etc.
+  isActive        Boolean   @default(true)
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Room usage
+  timetableSlots  TimetableSlot[]
+  examSessions    ExamSession[]
+  events          Event[]   @relation("EventVenue")
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([schoolId, code])
+}
+
+// Enhanced Timetable Management
+model Timetable {
+  id              String    @id @default(uuid())
+  name            String
+  academicYearId  String
+  termId          String?
+  effectiveFrom   DateTime
+  effectiveTo     DateTime?
+  isActive        Boolean   @default(true)
+  documentUrl     String?   // URL to timetable document
+  
+  // Relationships
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  academicYear    AcademicYear @relation(fields: [academicYearId], references: [id])
+  term            Term?     @relation(fields: [termId], references: [id])
+  
+  // Timetable slots
+  slots           TimetableSlot[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  Class Class[]
+}
+
+// Enhanced Timetable slots with room assignment
+model TimetableSlot {
+  id              String    @id @default(uuid())
+  day             Day
+  startTime       String    // Format: "HH:MM"
+  endTime         String    // Format: "HH:MM"
+  period          Int       // Period number (1, 2, 3, etc.)
+  
+  // Relationships
+  timetableId     String
+  timetable       Timetable @relation(fields: [timetableId], references: [id])
+  lessonId        String
+  lesson          Lesson    @relation(fields: [lessonId], references: [id])
+  roomId          String?
+  room            Room?     @relation(fields: [roomId], references: [id])
+  teacherId       String
+  teacher         Teacher   @relation("TeacherSlots", fields: [teacherId], references: [id])
+  
+  // Slot status
+  isActive        Boolean   @default(true)
+  notes           String?
+  
+  @@unique([timetableId, day, period])
+}
+
+// Term Management
+model Term {
+  id              String    @id @default(uuid())
+  name            String    // "First Term", "Second Term", etc.
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean   @default(false)
+  
+  // Relationships
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  academicYearId  String
+  academicYear    AcademicYear @relation(fields: [academicYearId], references: [id])
+  
+  // Term content
+  timetables      Timetable[]
+  exams           Exam[]
+  reportCards     ReportCard[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([schoolId, academicYearId, name])
+}
+
+// Holiday Management
+model Holiday {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  startDate       DateTime
+  endDate         DateTime
+  holidayType     HolidayType @default(PUBLIC)
+  isRecurring     Boolean   @default(false)
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Enhanced Exam Management
+model Exam {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  examType        ExamType  @default(WRITTEN)
+  totalMarks      Int
+  passingMarks    Int
+  duration        Int       // Duration in minutes
+  instructions    String?
+  
+  // Scheduling
+  startDate       DateTime
+  endDate         DateTime
+  
+  // Relationships
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  subjectId       String
+  subject         Subject   @relation(fields: [subjectId], references: [id])
+  gradeId         String?
+  grade           Grade?    @relation(fields: [gradeId], references: [id])
+  classId         String?
+  class           Class?    @relation(fields: [classId], references: [id])
+  termId          String?
+  term            Term?     @relation(fields: [termId], references: [id])
+  createdById     String
+  createdBy       Principal @relation("ExamCreator", fields: [createdById], references: [id])
+  
+  // Exam content
+  examQuestions   ExamQuestion[]
+  examSessions    ExamSession[]
+  results         Result[]
+  
+  // Status
+  status          ExamStatus @default(DRAFT)
+  publishedAt     DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Exam Sessions (individual exam sittings)
+model ExamSession {
+  id              String    @id @default(uuid())
+  sessionDate     DateTime
+  startTime       String    // Format: "HH:MM"
+  endTime         String    // Format: "HH:MM"
+  
+  // Relationships
+  examId          String
+  exam            Exam      @relation(fields: [examId], references: [id])
+  roomId          String
+  room            Room      @relation(fields: [roomId], references: [id])
+  invigilatorId   String
+  invigilator     Teacher   @relation("ExamInvigilator", fields: [invigilatorId], references: [id])
+  
+  // Students in this session
+  students        Student[]
+  
+  // Session status
+  status          ExamSessionStatus @default(SCHEDULED)
+  actualStartTime DateTime?
+  actualEndTime   DateTime?
+  notes           String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Grade Scale Management
+model GradeScale {
+  id              String    @id @default(uuid())
+  name            String    // "Primary Scale", "Secondary Scale"
+  description     String?
+  isDefault       Boolean   @default(false)
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Grade boundaries
+  gradeBoundaries GradeBoundary[]
+  
+  // Usage
+  subjects        Subject[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([schoolId, name])
+}
+
+// Grade Boundaries (A, B, C, etc.)
+model GradeBoundary {
+  id              String    @id @default(uuid())
+  grade           String    // "A", "B", "C", "D", "F"
+  minPercentage   Float
+  maxPercentage   Float
+  gradePoint      Float     // For GPA calculation
+  description     String?   // "Excellent", "Good", etc.
+  
+  // Relationships
+  gradeScaleId    String
+  gradeScale      GradeScale @relation(fields: [gradeScaleId], references: [id])
+  
+  @@unique([gradeScaleId, grade])
+}
+
+// Curriculum Management
+model Curriculum {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  version         String    @default("1.0")
+  isActive        Boolean   @default(true)
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Curriculum content
+  curriculumSubjects CurriculumSubject[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([schoolId, name, version])
+}
+
+// Curriculum Subjects
+model CurriculumSubject {
+  id              String    @id @default(uuid())
+  
+  // Relationships
+  curriculumId    String
+  curriculum      Curriculum @relation(fields: [curriculumId], references: [id])
+  subjectId       String
+  subject         Subject   @relation(fields: [subjectId], references: [id])
+  gradeId         String
+  grade           Grade     @relation(fields: [gradeId], references: [id])
+  
+  // Subject details in curriculum
+  hoursPerWeek    Int?
+  isCore          Boolean   @default(true)
+  prerequisites   String[]  // Array of prerequisite subject IDs
+  
+  // Learning objectives
+  learningObjectives LearningObjective[]
+  
+  @@unique([curriculumId, subjectId, gradeId])
+}
+
+// Learning Objectives
+model LearningObjective {
+  id              String    @id @default(uuid())
+  title           String
+  description     String
+  objectiveType   ObjectiveType @default(KNOWLEDGE)
+  bloomsLevel     BloomsLevel @default(REMEMBER)
+  
+  // Relationships
+  curriculumSubjectId String
+  curriculumSubject CurriculumSubject @relation(fields: [curriculumSubjectId], references: [id])
+  
+  // Progress tracking
+  studentProgress CurriculumProgress[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Student Curriculum Progress
+model CurriculumProgress {
+  id              String    @id @default(uuid())
+  
+  // Relationships
+  studentId       String
+  student         Student   @relation(fields: [studentId], references: [id])
+  learningObjectiveId String
+  learningObjective LearningObjective @relation(fields: [learningObjectiveId], references: [id])
+  
+  // Progress details
+  status          ProgressStatus @default(NOT_STARTED)
+  completedAt     DateTime?
+  masteryLevel    MasteryLevel @default(BEGINNER)
+  notes           String?
+  
+  // Assessment
+  assessmentScore Float?
+  assessmentDate  DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([studentId, learningObjectiveId])
+}
+
+// Report Card Management
+model ReportCard {
+  id              String    @id @default(uuid())
+  title           String
+  academicYearId  String
+  termId          String?
+  
+  // Relationships
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  studentId       String
+  student         Student   @relation(fields: [studentId], references: [id])
+  academicYear    AcademicYear @relation(fields: [academicYearId], references: [id])
+  term            Term?     @relation(fields: [termId], references: [id])
+  
+  // Report card data
+  overallGrade    String?
+  overallGPA      Float?
+  totalMarks      Int?
+  obtainedMarks   Int?
+  percentage      Float?
+  position        Int?      // Class position
+  totalStudents   Int?      // Total students in class
+  
+  // Comments
+  teacherComments String?
+  principalComments String?
+  
+  // Status
+  status          ReportCardStatus @default(DRAFT)
+  generatedAt     DateTime?
+  approvedAt      DateTime?
+  approvedById    String?
+  approvedBy      Principal? @relation("ReportCardApprover", fields: [approvedById], references: [id])
+  
+  // Report card subjects
+  subjectReports  SubjectReport[]
+  
+  // Views (for parents)
+  views           ReportCardView[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([studentId, academicYearId, termId])
+}
+
+// Subject Reports in Report Card
+model SubjectReport {
+  id              String    @id @default(uuid())
+  
+  // Relationships
+  reportCardId    String
+  reportCard      ReportCard @relation(fields: [reportCardId], references: [id])
+  subjectId       String
+  subject         Subject   @relation(fields: [subjectId], references: [id])
+  
+  // Marks
+  totalMarks      Int
+  obtainedMarks   Int
+  percentage      Float
+  grade           String
+  gradePoint      Float?
+  
+  // Position
+  position        Int?
+  totalStudents   Int?
+  
+  // Comments
+  teacherComments String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([reportCardId, subjectId])
+}
+
+// Report Card Views (tracking when parents view report cards)
+model ReportCardView {
+  id              String    @id @default(uuid())
+  
+  // Relationships
+  reportCardId    String
+  reportCard      ReportCard @relation(fields: [reportCardId], references: [id])
+  parentId        String
+  parent          Parent    @relation(fields: [parentId], references: [id])
+  
+  // View details
+  viewedAt        DateTime  @default(now())
+  ipAddress       String?
+  userAgent       String?
+  
+  @@unique([reportCardId, parentId])
 }
 
 // Approval system for various entities
@@ -277,6 +727,8 @@ model Grade {
   // Grade relationships
   classes         Class[]
   students        Student[]
+  exams           Exam[]
+  curriculumSubjects CurriculumSubject[]
   
   @@unique([schoolId, level])
 }
@@ -305,6 +757,7 @@ model Class {
   events          Event[]   @relation("ClassEvents")
   announcements   Announcement[] @relation("ClassAnnouncements")
   assignments     Assignment[]
+  exams           Exam[]
   
   @@unique([schoolId, name])
 }
@@ -320,11 +773,18 @@ model Subject {
   schoolId        String
   school          School    @relation(fields: [schoolId], references: [id])
   
+  // Grading
+  gradeScaleId    String?
+  gradeScale      GradeScale? @relation(fields: [gradeScaleId], references: [id])
+  
   // Subject relationships
   teachers        Teacher[] @relation("TeacherSubjects")
   lessons         Lesson[]
   assignments     Assignment[]
   examQuestions   ExamQuestion[]
+  exams           Exam[]
+  curriculumSubjects CurriculumSubject[]
+  subjectReports  SubjectReport[]
   
   @@unique([schoolId, name])
 }
@@ -363,6 +823,9 @@ model AcademicYear {
   // Academic year content
   academicCalendars AcademicCalendar[]
   feeStructures   FeeStructure[]
+  terms           Term[]
+  timetables      Timetable[]
+  reportCards     ReportCard[]
   
   @@unique([schoolId, name])
 }
@@ -402,37 +865,6 @@ model CalendarItem {
   // Relationships
   academicCalendarId String
   academicCalendar AcademicCalendar @relation(fields: [academicCalendarId], references: [id])
-}
-
-// Timetables
-model Timetable {
-  id              String    @id @default(uuid())
-  name            String
-  effectiveFrom   DateTime
-  effectiveTo     DateTime?
-  isActive        Boolean   @default(true)
-  documentUrl     String?   // URL to timetable document
-  
-  // Relationships
-  classId         String
-  class           Class     @relation(fields: [classId], references: [id])
-  
-  // Timetable slots
-  slots           TimetableSlot[]
-}
-
-// Timetable slots
-model TimetableSlot {
-  id              String    @id @default(uuid())
-  day             Day
-  startTime       DateTime
-  endTime         DateTime
-  
-  // Relationships
-  timetableId     String
-  timetable       Timetable @relation(fields: [timetableId], references: [id])
-  lessonId        String
-  lesson          Lesson    @relation(fields: [lessonId], references: [id])
 }
 
 // Enhanced Assignments with file storage
@@ -515,25 +947,6 @@ model ExamQuestion {
   updatedAt       DateTime  @updatedAt
 }
 
-// Exam instances
-model Exam {
-  id              String    @id @default(uuid())
-  title           String
-  startTime       DateTime
-  endTime         DateTime
-  venue           String?
-  instructions    String?
-  
-  // Relationships
-  examQuestionId  String
-  examQuestion    ExamQuestion @relation(fields: [examQuestionId], references: [id])
-  
-  // Results
-  results         Result[]
-  
-  createdAt       DateTime  @default(now())
-}
-
 // Enhanced Results with document storage
 model Result {
   id              String    @id @default(uuid())
@@ -541,6 +954,7 @@ model Result {
   maxScore        Int?
   percentage      Float?
   grade           String?
+  gradePoint      Float?
   feedback        String?
   documentUrls    String[]  // URLs to result documents
   
@@ -558,6 +972,9 @@ model Result {
   uploadedById    String
   uploadedBy      Teacher   @relation("ResultUploader", fields: [uploadedById], references: [id])
   uploadedAt      DateTime  @default(now())
+  gradedById      String?
+  gradedBy        Teacher?  @relation("ResultGrader", fields: [gradedById], references: [id])
+  gradedAt        DateTime?
   approval        Approval? @relation("ResultApproval")
   
   // Analytics
@@ -774,6 +1191,8 @@ model Event {
   school          School    @relation(fields: [schoolId], references: [id])
   classId         String?
   class           Class?    @relation("ClassEvents", fields: [classId], references: [id])
+  roomId          String?
+  room            Room?     @relation("EventVenue", fields: [roomId], references: [id])
   createdById     String?
   createdBy       Principal? @relation("CreatedBy", fields: [createdById], references: [id])
   
@@ -881,7 +1300,361 @@ model FileStorage {
   updatedAt       DateTime  @updatedAt
 }
 
-// Enums
+// E-commerce Models for Teaching and Learning Materials
+
+model MaterialCategory {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  imageUrl        String?
+  isActive        Boolean   @default(true)
+  
+  // School relationship
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Category relationships
+  materials       Material[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([schoolId, name])
+}
+
+model Material {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  imageUrls       String[]  // Multiple product images
+  price           Decimal   @db.Decimal(10, 2)
+  currency        String    @default("NGN")
+  stockQuantity   Int       @default(0)
+  minOrderQty     Int       @default(1)
+  maxOrderQty     Int?
+  isActive        Boolean   @default(true)
+  
+  // Material specifications
+  brand           String?
+  model           String?
+  specifications  Json?     // Store additional specs as JSON
+  
+  // School and category relationships
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  categoryId      String
+  category        MaterialCategory @relation(fields: [categoryId], references: [id])
+  
+  // E-commerce relationships
+  orderItems      MaterialOrderItem[]
+  cartItems       MaterialCartItem[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([schoolId, name])
+}
+
+model MaterialCart {
+  id              String    @id @default(uuid())
+  
+  // Parent relationship
+  parentId        String
+  parent          Parent    @relation(fields: [parentId], references: [id])
+  
+  // School relationship (cart is school-specific)
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Cart items
+  items           MaterialCartItem[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([parentId, schoolId])
+}
+
+model MaterialCartItem {
+  id              String    @id @default(uuid())
+  quantity        Int       @default(1)
+  
+  // Relationships
+  cartId          String
+  cart            MaterialCart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  materialId      String
+  material        Material  @relation(fields: [materialId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([cartId, materialId])
+}
+
+model MaterialOrder {
+  id              String    @id @default(uuid())
+  orderNumber     String    @unique
+  status          MaterialOrderStatus @default(PENDING)
+  
+  // Amounts
+  subtotal        Decimal   @db.Decimal(10, 2)
+  processingFee   Decimal   @db.Decimal(10, 2) // Our 2.9% fee
+  paystackFee     Decimal   @db.Decimal(10, 2) // Paystack's fee
+  totalAmount     Decimal   @db.Decimal(10, 2) // Total paid by parent
+  schoolAmount    Decimal   @db.Decimal(10, 2) // Amount school receives
+  
+  currency        String    @default("NGN")
+  
+  // Delivery information
+  deliveryMethod  DeliveryMethod @default(SCHOOL_PICKUP)
+  deliveryAddress String?
+  deliveryFee     Decimal?  @db.Decimal(10, 2)
+  deliveryNotes   String?
+  
+  // Relationships
+  parentId        String
+  parent          Parent    @relation(fields: [parentId], references: [id])
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Order items
+  items           MaterialOrderItem[]
+  
+  // Payment information
+  payment         MaterialPayment?
+  
+  // Order tracking
+  orderDate       DateTime  @default(now())
+  confirmedAt     DateTime?
+  preparedAt      DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+  
+  // Notes
+  orderNotes      String?
+  adminNotes      String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model MaterialOrderItem {
+  id              String    @id @default(uuid())
+  quantity        Int
+  unitPrice       Decimal   @db.Decimal(10, 2)
+  totalPrice      Decimal   @db.Decimal(10, 2)
+  
+  // Relationships
+  orderId         String
+  order           MaterialOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  materialId      String
+  material        Material  @relation(fields: [materialId], references: [id])
+  
+  // Snapshot of material details at time of order
+  materialName    String
+  materialImage   String?
+  
+  createdAt       DateTime  @default(now())
+}
+
+model MaterialPayment {
+  id              String    @id @default(uuid())
+  
+  // Payment details
+  amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("NGN")
+  status          MaterialPaymentStatus @default(PENDING)
+  paymentMethod   String    @default("card")
+  
+  // Paystack integration
+  paystackRef     String    @unique
+  paystackTxnId   String?
+  authorizationCode String?
+  
+  // Split payment details
+  schoolTransferCode String? // Paystack transfer code for school
+  schoolTransferRef  String? // Our reference for school transfer
+  schoolTransferStatus String? @default("pending")
+  
+  // Fee breakdown
+  processingFee   Decimal   @db.Decimal(10, 2) // Our 2.9%
+  paystackFee     Decimal   @db.Decimal(10, 2) // Paystack's fee
+  schoolAmount    Decimal   @db.Decimal(10, 2) // Amount to transfer to school
+  
+  // Timestamps
+  paidAt          DateTime?
+  schoolTransferredAt DateTime?
+  
+  // Relationships
+  orderId         String    @unique
+  order           MaterialOrder @relation(fields: [orderId], references: [id])
+  
+  // Receipt
+  receiptNumber   String?   @unique
+  receiptUrl      String?   // URL to receipt document
+  
+  // Paystack webhook data
+  webhookData     Json?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model SchoolPaymentAccount {
+  id              String    @id @default(uuid())
+  
+  // School relationship
+  schoolId        String    @unique
+  school          School    @relation(fields: [schoolId], references: [id])
+  
+  // Bank account details
+  accountName     String
+  accountNumber   String
+  bankCode        String
+  bankName        String
+  
+  // Mobile money details (optional)
+  momoProvider    String?   // MTN, Airtel, etc.
+  momoNumber      String?
+  
+  // Paystack subaccount details
+  paystackSubaccountCode String? @unique
+  paystackRecipientCode  String? @unique
+  
+  // Verification status
+  isVerified      Boolean   @default(false)
+  verifiedAt      DateTime?
+  
+  // Settings
+  isActive        Boolean   @default(true)
+  preferredMethod PaymentAccountType @default(BANK_ACCOUNT)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// ACADEMIC MANAGEMENT ENUMS
+
+enum RoomType {
+  CLASSROOM
+  LABORATORY
+  LIBRARY
+  AUDITORIUM
+  GYMNASIUM
+  COMPUTER_LAB
+  ART_ROOM
+  MUSIC_ROOM
+  CAFETERIA
+  OFFICE
+  STORAGE
+  OTHER
+}
+
+enum ExamType {
+  WRITTEN
+  PRACTICAL
+  ORAL
+  PROJECT
+  CONTINUOUS_ASSESSMENT
+  FINAL_EXAM
+  MID_TERM
+  QUIZ
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ExamSessionStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+  POSTPONED
+}
+
+enum HolidayType {
+  PUBLIC
+  SCHOOL_SPECIFIC
+  RELIGIOUS
+  NATIONAL
+  REGIONAL
+}
+
+enum ObjectiveType {
+  KNOWLEDGE
+  SKILL
+  ATTITUDE
+  COMPETENCY
+}
+
+enum BloomsLevel {
+  REMEMBER
+  UNDERSTAND
+  APPLY
+  ANALYZE
+  EVALUATE
+  CREATE
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  MASTERED
+}
+
+enum MasteryLevel {
+  BEGINNER
+  DEVELOPING
+  PROFICIENT
+  ADVANCED
+  EXPERT
+}
+
+enum ReportCardStatus {
+  DRAFT
+  GENERATED
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+// Existing enums
+enum MaterialOrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum MaterialPaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum DeliveryMethod {
+  SCHOOL_PICKUP
+  HOME_DELIVERY
+  STUDENT_PICKUP
+}
+
+enum PaymentAccountType {
+  BANK_ACCOUNT
+  MOBILE_MONEY
+}
+
 enum UserSex {
   MALE
   FEMALE

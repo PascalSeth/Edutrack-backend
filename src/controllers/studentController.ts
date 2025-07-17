@@ -41,24 +41,17 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
     let where: any = {}
 
     // Apply tenant filtering based on user role
-    if (req.user?.role === "PARENT") {
+    if (req.user?.role === "SUPER_ADMIN") {
+      // Super admin sees all students
+      where = {}
+    } else if (req.user?.role === "PARENT") {
+      // Parents see only their own children
       where = { parentId: req.user.id }
     } else if (req.user?.role === "TEACHER") {
-      where = {
-        OR: [
-          {
-            class: { supervisorId: req.user.id },
-          },
-          {
-            class: {
-              lessons: {
-                some: { teacherId: req.user.id },
-              },
-            },
-          },
-        ],
-      }
+      // Teachers see students in their classes or lessons
+      where = getTeacherStudentFilter(req.user.id, req.user?.schoolId)
     } else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN") {
+      // School admins and principals see students in their school
       where = getTenantFilter(req.user)
     }
 
@@ -115,10 +108,10 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
 
     logger.info("Students retrieved", {
       userId: req.user?.id,
+      userRole: req.user?.role,
       page,
       limit,
       total,
-      userRole: req.user?.role,
     })
 
     res.status(200).json({
@@ -226,7 +219,7 @@ export const getStudentById = async (req: AuthRequest, res: Response) => {
             exam: {
               select: {
                 title: true,
-                examQuestion: {
+                examQuestions: {
                   select: {
                     subject: { select: { name: true } },
                   },
@@ -688,5 +681,23 @@ export const getStudentsBySchool = async (req: AuthRequest, res: Response) => {
     })
   } catch (error) {
     handleError(res, error, "Failed to retrieve students by school")
+  }
+}
+
+async function getTeacherStudentFilter(teacherId: string, schoolId?: string) {
+  return {
+    schoolId,
+    OR: [
+      {
+        class: { supervisorId: teacherId },
+      },
+      {
+        class: {
+          lessons: {
+            some: { teacherId: teacherId },
+          },
+        },
+      },
+    ],
   }
 }

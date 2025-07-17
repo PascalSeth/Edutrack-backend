@@ -1,114 +1,113 @@
-import express, { type Express, type Request, type Response, type NextFunction } from "express"
+import express from "express"
 import cors from "cors"
-import dotenv from "dotenv"
-import userRouter from "./routes/userRoutes"
-import schoolRouter from "./routes/schoolRoutes"
-import studentRouter from "./routes/studentRoutes"
-import teacherRouter from "./routes/teacherRoutes"
-import parentRouter from "./routes/parentRoutes"
-import gradeRouter from "./routes/gradeRoutes"
-import classRouter from "./routes/classRoutes"
+import helmet from "helmet"
+import rateLimit from "express-rate-limit"
 import { logger } from "./utils/setup"
-import authRouter from "./routes/authRoutes"
-import assignmentRouter from "./routes/assignmentRoutes"
-import attendanceRouter from "./routes/attendanceRoutes"
-import eventRouter from "./routes/eventRoutes"
-import analyticsRouter from "./routes/analyticsRoutes"
-import notificationRouter from "./routes/notificationRoutes"
-import subjectRouter from "./routes/subjectRoutes"
-import dashboardRouter from "./routes/dashboardRoutes"
-import multiTenantRouter from "./routes/multiTenantRoutes"
 
-// Load environment variables FIRST
-dotenv.config()
+// Import routes
+import authRoutes from "./routes/authRoutes"
+import userRoutes from "./routes/userRoutes"
+import schoolRoutes from "./routes/schoolRoutes"
+import studentRoutes from "./routes/studentRoutes"
+import teacherRoutes from "./routes/teacherRoutes"
+import parentRoutes from "./routes/parentRoutes"
+import classRoutes from "./routes/classRoutes"
+import subjectRoutes from "./routes/subjectRoutes"
+import gradeRoutes from "./routes/gradeRoutes"
+import assignmentRoutes from "./routes/assignmentRoutes"
+import attendanceRoutes from "./routes/attendanceRoutes"
+import eventRoutes from "./routes/eventRoutes"
+import notificationRoutes from "./routes/notificationRoutes"
+import materialRoutes from "./routes/materialRoutes"
+import materialOrderRoutes from "./routes/materialOrderRoutes"
+import schoolPaymentRoutes from "./routes/schoolPaymentRoutes"
+import analyticsRoutes from "./routes/analyticsRoutes"
+import dashboardRoutes from "./routes/dashboardRoutes"
+import webhookRoutes from "./routes/webhookRoutes"
+import reportCardRoutes from "./routes/reportCardRoutes"
+import timetableRoutes from "./routes/timetableRoutes"
+import examRoutes from "./routes/examRoutes"
+import roomRoutes from "./routes/roomRoutes"
+import curriculumRoutes from "./routes/curriculumRoutes"
+import academicCalendarRoutes from "./routes/academicCalendarRoutes"
 
-const app: Express = express()
+const app = express()
+const PORT = process.env.PORT || 3000
 
-// Middleware
-app.use(cors())
+// Security middleware
+app.use(helmet())
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true,
+  }),
+)
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
+})
+app.use(limiter)
+
+// Body parsing middleware
 app.use(express.json({ limit: "10mb" }))
+app.use(express.urlencoded({ extended: true, limit: "10mb" }))
 
-// Health check route - should be before other routes
-app.get("/", (req, res) => {
-  res.json({ status: "ok", message: "Edutrack Backend API" })
-})
-
+// Health check endpoint
 app.get("/health", (req, res) => {
-  res.json({ status: "healthy", timestamp: new Date().toISOString() })
+  res.status(200).json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  })
 })
 
-// API Routes
-app.use("/api/auth", authRouter)
-app.use("/api/users", userRouter)
-app.use("/api/schools", schoolRouter)
-app.use("/api/students", studentRouter)
-app.use("/api/teachers", teacherRouter)
-app.use("/api/parents", parentRouter)
-app.use("/api/grades", gradeRouter)
-app.use("/api/classes", classRouter)
-app.use("/api/assignments", assignmentRouter)
-app.use("/api/attendance", attendanceRouter)
-app.use("/api/events", eventRouter)
-app.use("/api/analytics", analyticsRouter)
-app.use("/api/notifications", notificationRouter)
-app.use("/api/subjects", subjectRouter)
-app.use("/api/dashboard", dashboardRouter)
-app.use("/api/multi-tenant", multiTenantRouter)
-
-// Error handling middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  logger.error("Unhandled error", { error: err.stack, path: req.path })
-  res.status(500).json({ message: "Something went wrong!" })
-})
+// API routes
+app.use("/api/auth", authRoutes)
+app.use("/api/users", userRoutes)
+app.use("/api/schools", schoolRoutes)
+app.use("/api/students", studentRoutes)
+app.use("/api/teachers", teacherRoutes)
+app.use("/api/parents", parentRoutes)
+app.use("/api/classes", classRoutes)
+app.use("/api/subjects", subjectRoutes)
+app.use("/api/grades", gradeRoutes)
+app.use("/api/assignments", assignmentRoutes)
+app.use("/api/attendance", attendanceRoutes)
+app.use("/api/events", eventRoutes)
+app.use("/api/notifications", notificationRoutes)
+app.use("/api/materials", materialRoutes)
+app.use("/api/material-orders", materialOrderRoutes)
+app.use("/api/school-payments", schoolPaymentRoutes)
+app.use("/api/analytics", analyticsRoutes)
+app.use("/api/dashboard", dashboardRoutes)
+app.use("/api/webhooks", webhookRoutes)
+app.use("/api/report-cards", reportCardRoutes)
+app.use("/api/timetables", timetableRoutes)
+app.use("/api/exams", examRoutes)
+app.use("/api/rooms", roomRoutes)
+app.use("/api/curriculum", curriculumRoutes)
+app.use("/api/academic-calendar", academicCalendarRoutes)
 
 // 404 handler
 app.use("*", (req, res) => {
   res.status(404).json({ message: "Route not found" })
 })
 
-// CRITICAL: Use PORT environment variable (Render default is 10000)
-const PORT = Number.parseInt(process.env.PORT || "10000", 10)
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  logger.error("Unhandled error:", err)
+  res.status(500).json({
+    message: "Internal server error",
+    ...(process.env.NODE_ENV === "development" && { error: err.message }),
+  })
+})
 
-// Add error handling for server startup
-const server = app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`)
-  console.log(`Server running on port ${PORT}`)
-  console.log(`Server is binding to 0.0.0.0:${PORT}`) // Extra logging for Render
+  logger.info(`Environment: ${process.env.NODE_ENV || "development"}`)
 })
 
-// Handle server startup errors
-server.on('error', (error: any) => {
-  logger.error('Server startup error:', error)
-  console.error('Server startup error:', error)
-  process.exit(1)
-})
-
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  logger.info("SIGTERM received, shutting down gracefully")
-  server.close(() => {
-    logger.info("Server closed")
-    process.exit(0)
-  })
-})
-
-process.on("SIGINT", () => {
-  logger.info("SIGINT received, shutting down gracefully")
-  server.close(() => {
-    logger.info("Server closed")
-    process.exit(0)
-  })
-})
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', error)
-  console.error('Uncaught Exception:', error)
-  process.exit(1)
-})
-
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason)
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason)
-  process.exit(1)
-})
+export default app

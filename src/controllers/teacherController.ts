@@ -1,6 +1,6 @@
 import type { Response } from "express"
 import { z } from "zod"
-import { prisma, type AuthRequest, handleError, logger } from "../utils/setup"
+import { prisma, type AuthRequest, handleError, logger, getTenantFilter, getParentSchoolIds } from "../utils/setup"
 
 // Validation Schemas
 const createTeacherSchema = z.object({
@@ -29,19 +29,107 @@ export const getTeachers = async (req: AuthRequest, res: Response) => {
     const limit = Number.parseInt(req.query.limit as string) || 10
     const skip = (page - 1) * limit
 
+    let where: any = {}
+
+    // Apply tenant filtering based on user role
+    if (req.user?.role === "SUPER_ADMIN") {
+      // Super admin sees all teachers
+      where = {}
+    } else if (req.user?.role === "TEACHER") {
+      // Teachers can only see their own record
+      where = { id: req.user.id }
+    } else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN") {
+      // School admins and principals see teachers in their school
+      where = getTenantFilter(req.user)
+    } else if (req.user?.role === "PARENT") {
+      // Parents see teachers who teach their children
+      const schoolIds = await getParentSchoolIds(req.user.id)
+      where = {
+        schoolId: { in: schoolIds },
+        OR: [
+          {
+            supervisedClasses: {
+              some: {
+                students: {
+                  some: { parentId: req.user.id },
+                },
+              },
+            },
+          },
+          {
+            lessons: {
+              some: {
+                class: {
+                  students: {
+                    some: { parentId: req.user.id },
+                  },
+                },
+              },
+            },
+          },
+        ],
+      }
+    }
+
     const [teachers, total] = await Promise.all([
       prisma.teacher.findMany({
+        where,
         skip,
         take: limit,
-        select: {
-          id: true,
-          user: { select: { email: true, name: true, surname: true, profileImageUrl: true } }, // Include profileImageUrl
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              surname: true,
+              profileImageUrl: true,
+            },
+          },
+          school: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          subjects: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          supervisedClasses: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          approval: {
+            select: {
+              status: true,
+            },
+          },
+          _count: {
+            select: {
+              subjects: true,
+              supervisedClasses: true,
+              lessons: true,
+            },
+          },
         },
+        orderBy: { user: { name: "asc" } },
       }),
-      prisma.teacher.count(),
+      prisma.teacher.count({ where }),
     ])
 
-    logger.info("Teachers retrieved", { userId: req.user?.id, page, limit })
+    logger.info("Teachers retrieved", {
+      userId: req.user?.id,
+      userRole: req.user?.role,
+      page,
+      limit,
+      total,
+    })
+
     res.status(200).json({
       message: "Teachers retrieved successfully",
       teachers,

@@ -8,6 +8,7 @@ import {
   getTenantFilter,
   getPagination,
   createPaginationResult,
+  getParentSchoolIds, // Declare the variable here
 } from "../utils/setup"
 import { supabase } from "../config/supabase"
 
@@ -67,14 +68,34 @@ export const getSchools = async (req: AuthRequest, res: Response) => {
       limit: Number.parseInt(req.query.limit as string),
     })
 
-    const filter = getTenantFilter(req.user)
     const status = req.query.status as string
     const schoolType = req.query.schoolType as string
 
-    const where = {
-      ...filter,
-      ...(status && { registrationStatus: status as any }),
-      ...(schoolType && { schoolType: schoolType as any }),
+    let where: any = {}
+
+    // Apply role-based filtering
+    if (req.user?.role === "SUPER_ADMIN") {
+      // Super admin sees all schools
+      where = {
+        ...(status && { registrationStatus: status as any }),
+        ...(schoolType && { schoolType: schoolType as any }),
+      }
+    } else if (req.user?.role === "PARENT") {
+      // Parents see only schools where their children are enrolled
+      const schoolIds = await getParentSchoolIds(req.user.id)
+      where = {
+        id: { in: schoolIds },
+        ...(status && { registrationStatus: status as any }),
+        ...(schoolType && { schoolType: schoolType as any }),
+      }
+    } else {
+      // School-based roles see only their school
+      const filter = getTenantFilter(req.user)
+      where = {
+        ...filter,
+        ...(status && { registrationStatus: status as any }),
+        ...(schoolType && { schoolType: schoolType as any }),
+      }
     }
 
     const [schools, total] = await Promise.all([
@@ -98,7 +119,6 @@ export const getSchools = async (req: AuthRequest, res: Response) => {
             select: {
               students: true,
               teachers: true,
-              // Removed 'parents' as it doesn't exist as a direct relation on School
             },
           },
         },
@@ -109,10 +129,10 @@ export const getSchools = async (req: AuthRequest, res: Response) => {
 
     logger.info("Schools retrieved", {
       userId: req.user?.id,
+      userRole: req.user?.role,
       page,
       limit,
       total,
-      filter: JSON.stringify(where),
     })
 
     res.status(200).json({
@@ -149,7 +169,6 @@ export const getSchoolById = async (req: AuthRequest, res: Response) => {
           select: {
             students: true,
             teachers: true,
-            // Removed 'parents' as it doesn't exist as a direct relation
             classes: true,
             grades: true,
           },
@@ -223,13 +242,13 @@ export const registerSchool = async (req: AuthRequest, res: Response) => {
         }
 
         // Update user role to SCHOOL_ADMIN if not already
-   // IF ADMIN IS SUPERADMIN DO NOT CHANGE ROLE
-if (user.role !== "SCHOOL_ADMIN" && user.role !== "SUPER_ADMIN") {
-  await tx.user.update({
-    where: { id: data.adminUserId },
-    data: { role: "SCHOOL_ADMIN" },
-  })
-}
+        // IF ADMIN IS SUPERADMIN DO NOT CHANGE ROLE
+        if (user.role !== "SCHOOL_ADMIN" && user.role !== "SUPER_ADMIN") {
+          await tx.user.update({
+            where: { id: data.adminUserId },
+            data: { role: "SCHOOL_ADMIN" },
+          })
+        }
         // Create school admin record
         await tx.schoolAdmin.create({
           data: {
@@ -582,7 +601,6 @@ export const getSchoolStats = async (req: AuthRequest, res: Response) => {
           select: {
             students: true,
             teachers: true,
-            // Removed 'parents' as it doesn't exist as direct relation
             classes: true,
             grades: true,
             subjects: true,

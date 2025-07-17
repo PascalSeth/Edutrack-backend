@@ -1,7 +1,16 @@
 import type { Response } from "express"
 import { z } from "zod"
-import { prisma, type AuthRequest, handleError, logger, getTenantFilter, createNotification } from "../utils/setup"
+import {
+  prisma,
+  type AuthRequest,
+  handleError,
+  logger,
+  getTenantFilter,
+  createNotification,
+  getParentSchoolIds,
+} from "../utils/setup"
 import { supabase } from "../config/supabase"
+import type { Express } from "express"
 
 // Validation Schemas
 const createAssignmentSchema = z.object({
@@ -27,24 +36,57 @@ export const getAssignments = async (req: AuthRequest, res: Response) => {
     const page = Number.parseInt(req.query.page as string) || 1
     const limit = Number.parseInt(req.query.limit as string) || 10
     const skip = (page - 1) * limit
-    const filter = getTenantFilter(req.user)
 
     // Filter by class if specified
     const classId = req.query.classId as string
     const subjectId = req.query.subjectId as string
     const status = req.query.status as string
 
-    const where = {
-      ...filter,
-      ...(classId && { classId }),
-      ...(subjectId && { subjectId }),
-      ...(status === "upcoming" && { startDate: { gt: new Date() } }),
-      ...(status === "active" && {
-        startDate: { lte: new Date() },
-        dueDate: { gte: new Date() },
-      }),
-      ...(status === "overdue" && { dueDate: { lt: new Date() } }),
+    let where: any = {}
+
+    // Apply tenant filtering based on user role
+    if (req.user?.role === "SUPER_ADMIN") {
+      // Super admin sees all assignments
+      where = {}
+    } else if (req.user?.role === "TEACHER") {
+      // Teachers see only their assignments
+      where = {
+        teacherId: req.user.id,
+        ...getTenantFilter(req.user),
+      }
+    } else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN") {
+      // School staff see assignments in their school
+      where = getTenantFilter(req.user)
+    } else if (req.user?.role === "PARENT") {
+      // Parents see assignments for their children's classes
+      const schoolIds = await getParentSchoolIds(req.user.id)
+      where = {
+        schoolId: { in: schoolIds },
+        OR: [
+          {
+            class: {
+              students: {
+                some: { parentId: req.user.id },
+              },
+            },
+          },
+          {
+            assignmentType: "CLASS_WIDE",
+            schoolId: { in: schoolIds },
+          },
+        ],
+      }
     }
+
+    // Apply additional filters
+    if (classId) where.classId = classId
+    if (subjectId) where.subjectId = subjectId
+    if (status === "upcoming") where.startDate = { gt: new Date() }
+    if (status === "active") {
+      where.startDate = { lte: new Date() }
+      where.dueDate = { gte: new Date() }
+    }
+    if (status === "overdue") where.dueDate = { lt: new Date() }
 
     const [assignments, total] = await Promise.all([
       prisma.assignment.findMany({
@@ -54,6 +96,7 @@ export const getAssignments = async (req: AuthRequest, res: Response) => {
         include: {
           subject: { select: { name: true, code: true } },
           class: { select: { name: true } },
+          school: { select: { name: true } },
           teacher: {
             include: {
               user: { select: { name: true, surname: true } },
@@ -68,6 +111,7 @@ export const getAssignments = async (req: AuthRequest, res: Response) => {
 
     logger.info("Assignments retrieved", {
       userId: req.user?.id,
+      userRole: req.user?.role,
       page,
       limit,
       total,

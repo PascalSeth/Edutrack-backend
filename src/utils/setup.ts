@@ -123,25 +123,84 @@ export const getTenantFilter = (user: AuthRequest["user"]) => {
     return {} // Super admin can access all data
   }
 
-  // Parents don't have a single school filter since they can have children in multiple schools
-  if (user.role === "PARENT") {
-    return {} // Parent filtering is handled at the query level
-  }
-
-  if (user.schoolId) {
+  // For school-based roles, filter by their school
+  if (user.schoolId && ["SCHOOL_ADMIN", "PRINCIPAL", "TEACHER"].includes(user.role)) {
     return { schoolId: user.schoolId }
   }
 
+  // Parents don't have a single school filter since they can have children in multiple schools
+  // Parent filtering is handled at the query level in individual controllers
   return {}
 }
 
+// Get schools where parent has children (for parent multi-tenant filtering)
+export const getParentSchoolIds = async (parentId: string): Promise<string[]> => {
+  const students = await prisma.student.findMany({
+    where: { parentId },
+    select: { schoolId: true },
+    distinct: ["schoolId"],
+  })
+  return students.map((s) => s.schoolId)
+}
+
 // Enhanced tenant filter for parent-specific queries
-export const getParentTenantFilter = (parentId: string) => {
+export const getParentTenantFilter = async (parentId: string) => {
+  const schoolIds = await getParentSchoolIds(parentId)
   return {
-    students: {
-      some: { parentId: parentId },
+    schoolId: { in: schoolIds },
+  }
+}
+
+// Enhanced tenant filter for teacher-specific student queries
+export const getTeacherStudentFilter = (teacherId: string, schoolId?: string) => {
+  const baseFilter: any = {
+    OR: [
+      {
+        class: { supervisorId: teacherId },
+      },
+      {
+        class: {
+          lessons: {
+            some: { teacherId: teacherId },
+          },
+        },
+      },
+    ],
+  }
+
+  if (schoolId) {
+    baseFilter.schoolId = schoolId
+  }
+
+  return baseFilter
+}
+
+// Enhanced tenant filter for teacher-specific parent queries
+export const getTeacherParentFilter = (teacherId: string, schoolId?: string) => {
+  const baseFilter: any = {
+    children: {
+      some: {
+        OR: [
+          {
+            class: { supervisorId: teacherId },
+          },
+          {
+            class: {
+              lessons: {
+                some: { teacherId: teacherId },
+              },
+            },
+          },
+        ],
+      },
     },
   }
+
+  if (schoolId) {
+    baseFilter.children.some.schoolId = schoolId
+  }
+
+  return baseFilter
 }
 
 // Enhanced tenant filter for teacher-specific queries
