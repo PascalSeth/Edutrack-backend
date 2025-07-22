@@ -1,7 +1,7 @@
+import { Prisma } from "@prisma/client"
 import type { Request, Response } from "express"
-import { PrismaClient, type Prisma } from "@prisma/client" // Import Prisma for type inference
+import { prisma } from "../../utils/setup"
 
-const prisma = new PrismaClient()
 
 // Helper to calculate duration in minutes from "HH:MM" strings
 const calculateDuration = (startTimeStr: string, endTimeStr: string): number => {
