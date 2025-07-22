@@ -24,8 +24,8 @@ const recordAttendance = async (req, res) => {
     try {
         const data = recordAttendanceSchema.parse(req.body);
         // Only teachers can record attendance
-        if (req.user?.role !== "TEACHER") {
-            return res.status(403).json({ message: "Only teachers can record attendance" });
+        if (req.user?.role !== "TEACHER" && req.user?.role !== "SUPER_ADMIN") {
+            return res.status(403).json({ message: "Only teachers and super admins can record attendance" });
         }
         const attendanceDate = data.date ? new Date(data.date) : new Date();
         // Verify student exists and teacher has access
@@ -107,8 +107,8 @@ exports.recordAttendance = recordAttendance;
 const recordBulkAttendance = async (req, res) => {
     try {
         const data = bulkAttendanceSchema.parse(req.body);
-        if (req.user?.role !== "TEACHER") {
-            return res.status(403).json({ message: "Only teachers can record attendance" });
+        if (req.user?.role !== "TEACHER" && req.user?.role !== "SUPER_ADMIN") {
+            return res.status(403).json({ message: "Only teachers and super admins can record attendance" });
         }
         const attendanceDate = data.date ? new Date(data.date) : new Date();
         // Verify lesson if provided
@@ -402,6 +402,7 @@ const getAttendanceAnalytics = async (req, res) => {
             }
             : {};
         const where = { ...dateFilter };
+        let studentIds = [];
         if (studentId) {
             // Verify access to student
             if (req.user?.role === "PARENT") {
@@ -412,57 +413,113 @@ const getAttendanceAnalytics = async (req, res) => {
                     return res.status(404).json({ message: "Student not found or access denied" });
                 }
             }
+            else if (req.user?.role !== "SUPER_ADMIN") {
+                // For other roles, check tenant access
+                const student = await setup_1.prisma.student.findFirst({
+                    where: {
+                        id: studentId,
+                        ...(0, setup_1.getTenantFilter)(req.user),
+                    },
+                });
+                if (!student) {
+                    return res.status(404).json({ message: "Student not found or access denied" });
+                }
+            }
             where.studentId = studentId;
+            studentIds = [studentId];
         }
         else if (classId) {
             // Verify access to class
             const classRecord = await setup_1.prisma.class.findFirst({
                 where: {
                     id: classId,
-                    ...(0, setup_1.getTenantFilter)(req.user),
+                    ...(req.user?.role !== "SUPER_ADMIN" ? (0, setup_1.getTenantFilter)(req.user) : {}),
+                },
+                include: {
+                    students: { select: { id: true } },
                 },
             });
             if (!classRecord) {
                 return res.status(404).json({ message: "Class not found or access denied" });
             }
-            const students = await setup_1.prisma.student.findMany({
-                where: { classId },
-                select: { id: true },
-            });
-            where.studentId = { in: students.map((s) => s.id) };
+            studentIds = classRecord.students.map((s) => s.id);
+            where.studentId = { in: studentIds };
         }
         // Get attendance analytics
-        const [totalRecords, presentCount, absentCount, weeklyTrends, monthlyTrends] = await Promise.all([
+        const [totalRecords, presentCount, absentCount] = await Promise.all([
             setup_1.prisma.attendance.count({ where }),
             setup_1.prisma.attendance.count({ where: { ...where, present: true } }),
             setup_1.prisma.attendance.count({ where: { ...where, present: false } }),
-            // Weekly trends (last 4 weeks)
-            setup_1.prisma.$queryRaw `
-        SELECT 
-          DATE_TRUNC('week', date) as week,
-          COUNT(*) as total,
-          COUNT(*) FILTER (WHERE present = true) as present,
-          COUNT(*) FILTER (WHERE present = false) as absent
-        FROM "Attendance"
-        WHERE ${studentId ? `"studentId" = ${studentId}` : `"studentId" = ANY(${JSON.stringify(where.studentId.in)})`}
-          AND date >= NOW() - INTERVAL '4 weeks'
-        GROUP BY DATE_TRUNC('week', date)
-        ORDER BY week DESC
-      `,
-            // Monthly trends (last 6 months)
-            setup_1.prisma.$queryRaw `
-        SELECT 
-          DATE_TRUNC('month', date) as month,
-          COUNT(*) as total,
-          COUNT(*) FILTER (WHERE present = true) as present,
-          COUNT(*) FILTER (WHERE present = false) as absent
-        FROM "Attendance"
-        WHERE ${studentId ? `"studentId" = ${studentId}` : `"studentId" = ANY(${JSON.stringify(where.studentId.in)})`}
-          AND date >= NOW() - INTERVAL '6 months'
-        GROUP BY DATE_TRUNC('month', date)
-        ORDER BY month DESC
-      `,
         ]);
+        // Get weekly trends (last 4 weeks) using Prisma aggregation
+        const fourWeeksAgo = new Date();
+        fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+        const weeklyAttendance = await setup_1.prisma.attendance.findMany({
+            where: {
+                studentId: studentId ? studentId : { in: studentIds },
+                date: { gte: fourWeeksAgo },
+            },
+            select: {
+                date: true,
+                present: true,
+            },
+        });
+        // Group by week
+        const weeklyTrends = weeklyAttendance
+            .reduce((acc, record) => {
+            const weekStart = new Date(record.date);
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of week
+            const weekKey = weekStart.toISOString().split("T")[0];
+            let weekData = acc.find((w) => w.week === weekKey);
+            if (!weekData) {
+                weekData = { week: weekKey, total: 0, present: 0, absent: 0 };
+                acc.push(weekData);
+            }
+            weekData.total++;
+            if (record.present) {
+                weekData.present++;
+            }
+            else {
+                weekData.absent++;
+            }
+            return acc;
+        }, [])
+            .sort((a, b) => new Date(b.week).getTime() - new Date(a.week).getTime())
+            .slice(0, 4);
+        // Get monthly trends (last 6 months)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const monthlyAttendance = await setup_1.prisma.attendance.findMany({
+            where: {
+                studentId: studentId ? studentId : { in: studentIds },
+                date: { gte: sixMonthsAgo },
+            },
+            select: {
+                date: true,
+                present: true,
+            },
+        });
+        // Group by month
+        const monthlyTrends = monthlyAttendance
+            .reduce((acc, record) => {
+            const monthStart = new Date(record.date.getFullYear(), record.date.getMonth(), 1);
+            const monthKey = monthStart.toISOString().split("T")[0];
+            let monthData = acc.find((m) => m.month === monthKey);
+            if (!monthData) {
+                monthData = { month: monthKey, total: 0, present: 0, absent: 0 };
+                acc.push(monthData);
+            }
+            monthData.total++;
+            if (record.present) {
+                monthData.present++;
+            }
+            else {
+                monthData.absent++;
+            }
+            return acc;
+        }, [])
+            .sort((a, b) => new Date(b.month).getTime() - new Date(a.month).getTime())
+            .slice(0, 6);
         const analytics = {
             summary: {
                 totalRecords,

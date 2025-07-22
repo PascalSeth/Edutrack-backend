@@ -5,9 +5,9 @@ const attendanceController_1 = require("../controllers/attendanceController");
 const setup_1 = require("../utils/setup");
 const router = (0, express_1.Router)();
 // Record single attendance (teachers only)
-router.post("/", (0, setup_1.authMiddleware)(["TEACHER"]), attendanceController_1.recordAttendance);
+router.post("/", (0, setup_1.authMiddleware)(["TEACHER", "SUPER_ADMIN"]), attendanceController_1.recordAttendance);
 // Record bulk attendance (teachers only)
-router.post("/bulk", (0, setup_1.authMiddleware)(["TEACHER"]), attendanceController_1.recordBulkAttendance);
+router.post("/bulk", (0, setup_1.authMiddleware)(["TEACHER", "SUPER_ADMIN"]), attendanceController_1.recordBulkAttendance);
 // Get student attendance
 router.get("/student/:studentId", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"]), attendanceController_1.getStudentAttendance);
 // Get class attendance

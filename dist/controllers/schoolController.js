@@ -1,11 +1,16 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSchoolStats = exports.deleteSchool = exports.uploadAccreditationDocuments = exports.uploadSchoolLogo = exports.verifySchool = exports.updateSchool = exports.registerSchool = exports.getSchoolById = exports.getSchools = void 0;
 const zod_1 = require("zod");
 const setup_1 = require("../utils/setup");
 const supabase_1 = require("../config/supabase");
+const bcrypt_1 = __importDefault(require("bcrypt")); // Re-import bcrypt for password hashing
 // Validation Schemas
-const registerSchoolSchema = zod_1.z.object({
+const registerSchoolSchema = zod_1.z
+    .object({
     name: zod_1.z.string().min(1, "School name is required"),
     address: zod_1.z.string().min(1, "Address is required"),
     city: zod_1.z.string().min(1, "City is required"),
@@ -20,35 +25,52 @@ const registerSchoolSchema = zod_1.z.object({
         .optional(),
     missionStatement: zod_1.z.string().optional(),
     virtualTourUrl: zod_1.z.string().url("Invalid URL").optional(),
+    // Admin user details - either adminUserId OR all of these must be provided
     adminUserId: zod_1.z.string().uuid("Invalid user ID").optional(),
+    adminEmail: zod_1.z.string().email("Invalid admin email").optional(),
+    adminUsername: zod_1.z.string().min(3, "Admin username must be at least 3 characters").optional(),
+    adminPassword: zod_1.z.string().min(8, "Admin password must be at least 8 characters").optional(),
+    adminName: zod_1.z.string().min(1, "Admin name is required").optional(),
+    adminSurname: zod_1.z.string().min(1, "Admin surname is required").optional(),
+})
+    .refine((data) => {
+    // Either adminUserId is provided, OR all new admin details are provided
+    const hasAdminId = data.adminUserId !== undefined && data.adminUserId !== "";
+    const hasNewAdminDetails = data.adminEmail !== undefined &&
+        data.adminEmail !== "" &&
+        data.adminUsername !== undefined &&
+        data.adminUsername !== "" &&
+        data.adminPassword !== undefined &&
+        data.adminPassword !== "" &&
+        data.adminName !== undefined &&
+        data.adminName !== "" &&
+        data.adminSurname !== undefined &&
+        data.adminSurname !== "";
+    return hasAdminId || hasNewAdminDetails;
+}, {
+    message: "Either 'adminUserId' must be provided, or all of 'adminEmail', 'adminUsername', 'adminPassword', 'adminName', and 'adminSurname' must be provided to create a new school admin.",
+    path: ["adminUserId", "adminEmail", "adminUsername", "adminPassword", "adminName", "adminSurname"],
 });
 const updateSchoolSchema = zod_1.z.object({
-    name: zod_1.z.string().min(1).optional(),
-    address: zod_1.z.string().min(1).optional(),
-    city: zod_1.z.string().min(1).optional(),
-    state: zod_1.z.string().min(1).optional(),
-    country: zod_1.z.string().optional(),
+    // Define fields that can be updated here
+    name: zod_1.z.string().min(1, "School name is required").optional(),
+    address: zod_1.z.string().min(1, "Address is required").optional(),
+    city: zod_1.z.string().min(1, "City is required").optional(),
+    state: zod_1.z.string().min(1, "State is required").optional(),
+    country: zod_1.z.string().min(1, "Country is required").optional(),
     postalCode: zod_1.z.string().optional(),
     phone: zod_1.z.string().optional(),
-    email: zod_1.z.string().email().optional(),
-    website: zod_1.z.string().url().optional(),
+    email: zod_1.z.string().email("Invalid email").optional(),
+    website: zod_1.z.string().url("Invalid URL").optional(),
     schoolType: zod_1.z
         .enum(["PRIMARY", "SECONDARY", "MONTESSORI", "INTERNATIONAL", "TECHNICAL", "UNIVERSITY", "OTHER"])
         .optional(),
     missionStatement: zod_1.z.string().optional(),
-    virtualTourUrl: zod_1.z.string().url().optional(),
-    welcomeMessage: zod_1.z.string().optional(),
-    brandColors: zod_1.z
-        .object({
-        primary: zod_1.z.string(),
-        secondary: zod_1.z.string(),
-        accent: zod_1.z.string(),
-    })
-        .optional(),
+    virtualTourUrl: zod_1.z.string().url("Invalid URL").optional(),
 });
 const verifySchoolSchema = zod_1.z.object({
-    status: zod_1.z.enum(["APPROVED", "REJECTED"]),
-    comments: zod_1.z.string().optional(),
+    status: zod_1.z.enum(["APPROVED", "REJECTED"]).describe("The verification status of the school"),
+    comments: zod_1.z.string().optional().describe("Optional comments for the verification status"),
 });
 const getSchools = async (req, res) => {
     try {
@@ -56,14 +78,35 @@ const getSchools = async (req, res) => {
             page: Number.parseInt(req.query.page),
             limit: Number.parseInt(req.query.limit),
         });
-        const filter = (0, setup_1.getTenantFilter)(req.user);
         const status = req.query.status;
         const schoolType = req.query.schoolType;
-        const where = {
-            ...filter,
-            ...(status && { registrationStatus: status }),
-            ...(schoolType && { schoolType: schoolType }),
-        };
+        let where = {};
+        // Apply role-based filtering
+        if (req.user?.role === "SUPER_ADMIN") {
+            // Super admin sees all schools
+            where = {
+                ...(status && { registrationStatus: status }),
+                ...(schoolType && { schoolType: schoolType }),
+            };
+        }
+        else if (req.user?.role === "PARENT") {
+            // Parents see only schools where their children are enrolled
+            const schoolIds = await (0, setup_1.getParentSchoolIds)(req.user.id);
+            where = {
+                id: { in: schoolIds },
+                ...(status && { registrationStatus: status }),
+                ...(schoolType && { schoolType: schoolType }),
+            };
+        }
+        else {
+            // School-based roles see only their school
+            const filter = (0, setup_1.getTenantFilter)(req.user);
+            where = {
+                ...filter,
+                ...(status && { registrationStatus: status }),
+                ...(schoolType && { schoolType: schoolType }),
+            };
+        }
         const [schools, total] = await Promise.all([
             setup_1.prisma.school.findMany({
                 where,
@@ -85,7 +128,6 @@ const getSchools = async (req, res) => {
                         select: {
                             students: true,
                             teachers: true,
-                            // Removed 'parents' as it doesn't exist as a direct relation on School
                         },
                     },
                 },
@@ -95,10 +137,10 @@ const getSchools = async (req, res) => {
         ]);
         setup_1.logger.info("Schools retrieved", {
             userId: req.user?.id,
+            userRole: req.user?.role,
             page,
             limit,
             total,
-            filter: JSON.stringify(where),
         });
         res.status(200).json({
             message: "Schools retrieved successfully",
@@ -133,7 +175,6 @@ const getSchoolById = async (req, res) => {
                     select: {
                         students: true,
                         teachers: true,
-                        // Removed 'parents' as it doesn't exist as a direct relation
                         classes: true,
                         grades: true,
                     },
@@ -159,6 +200,7 @@ exports.getSchoolById = getSchoolById;
 const registerSchool = async (req, res) => {
     try {
         const data = registerSchoolSchema.parse(req.body);
+        setup_1.logger.info("Register school request received", { body: data }); // Log incoming data
         // Check if school with same name already exists
         const existingSchool = await setup_1.prisma.school.findFirst({
             where: {
@@ -168,10 +210,13 @@ const registerSchool = async (req, res) => {
             },
         });
         if (existingSchool) {
+            setup_1.logger.warn("School with same name already exists", { schoolName: data.name, city: data.city, state: data.state });
             return res.status(409).json({
                 message: "A school with this name already exists in this location",
             });
         }
+        let adminUserIdToLink;
+        let generatedAdminCredentials;
         const school = await setup_1.prisma.$transaction(async (tx) => {
             // Create school
             const newSchool = await tx.school.create({
@@ -191,32 +236,69 @@ const registerSchool = async (req, res) => {
                     registrationStatus: "PENDING",
                 },
             });
-            // If admin user is provided, create school admin relationship
+            setup_1.logger.info("New school created within transaction", { schoolId: newSchool.id, schoolName: newSchool.name });
             if (data.adminUserId) {
+                setup_1.logger.info("Linking existing admin user", { adminUserId: data.adminUserId });
                 const user = await tx.user.findUnique({
                     where: { id: data.adminUserId },
                 });
                 if (!user) {
-                    throw new Error("Admin user not found");
+                    setup_1.logger.error("Provided admin user not found", { adminUserId: data.adminUserId });
+                    throw new Error("Admin user not found. Please provide a valid existing user ID.");
                 }
-                // Update user role to SCHOOL_ADMIN if not already
-                if (user.role !== "SCHOOL_ADMIN") {
+                // Update user role to SCHOOL_ADMIN if not already (and not SUPER_ADMIN)
+                if (user.role !== "SCHOOL_ADMIN" && user.role !== "SUPER_ADMIN") {
                     await tx.user.update({
                         where: { id: data.adminUserId },
                         data: { role: "SCHOOL_ADMIN" },
                     });
+                    setup_1.logger.info("Updated existing user role to SCHOOL_ADMIN", { userId: data.adminUserId });
                 }
-                // Create school admin record
-                await tx.schoolAdmin.create({
+                adminUserIdToLink = data.adminUserId;
+            }
+            else {
+                setup_1.logger.info("Creating new admin user for the school.");
+                // This check is technically redundant due to Zod's refine, but good for clarity/fallback
+                if (!data.adminEmail || !data.adminUsername || !data.adminPassword || !data.adminName || !data.adminSurname) {
+                    setup_1.logger.error("Missing details for new school admin user, despite schema validation.");
+                    throw new Error("Missing details for new school admin user.");
+                }
+                const passwordHash = await bcrypt_1.default.hash(data.adminPassword, 12);
+                setup_1.logger.info("Password hashed successfully.");
+                const newAdminUser = await tx.user.create({
                     data: {
-                        id: data.adminUserId,
-                        schoolId: newSchool.id,
+                        email: data.adminEmail,
+                        username: data.adminUsername,
+                        passwordHash,
+                        name: data.adminName,
+                        surname: data.adminSurname,
+                        role: "SCHOOL_ADMIN",
+                        isActive: true,
                     },
                 });
+                adminUserIdToLink = newAdminUser.id;
+                generatedAdminCredentials = {
+                    email: data.adminEmail,
+                    username: data.adminUsername,
+                    password: data.adminPassword,
+                };
+                setup_1.logger.info("New school admin user created and linked", {
+                    adminUserId: newAdminUser.id,
+                    email: data.adminEmail,
+                    username: data.adminUsername,
+                });
             }
+            // Create school admin record using the determined adminUserId
+            await tx.schoolAdmin.create({
+                data: {
+                    id: adminUserIdToLink,
+                    schoolId: newSchool.id,
+                },
+            });
+            setup_1.logger.info("SchoolAdmin record created", { schoolId: newSchool.id, adminUserId: adminUserIdToLink });
             return newSchool;
         });
-        setup_1.logger.info("School registered", {
+        setup_1.logger.info("School registration transaction completed successfully", {
             userId: req.user?.id,
             schoolId: school.id,
             schoolName: school.name,
@@ -228,6 +310,7 @@ const registerSchool = async (req, res) => {
                 name: school.name,
                 registrationStatus: school.registrationStatus,
             },
+            ...(generatedAdminCredentials && { adminCredentials: generatedAdminCredentials }),
         });
     }
     catch (error) {
@@ -238,6 +321,7 @@ const registerSchool = async (req, res) => {
             });
             return res.status(400).json({ message: "Invalid input", errors: error.errors });
         }
+        // Catch any other errors, including those from Prisma or bcrypt
         (0, setup_1.handleError)(res, error, "Failed to register school");
     }
 };
@@ -521,7 +605,6 @@ const getSchoolStats = async (req, res) => {
                     select: {
                         students: true,
                         teachers: true,
-                        // Removed 'parents' as it doesn't exist as direct relation
                         classes: true,
                         grades: true,
                         subjects: true,

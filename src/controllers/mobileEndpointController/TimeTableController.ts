@@ -14,7 +14,7 @@ const calculateDuration = (startTimeStr: string, endTimeStr: string): number => 
   return endMinutes - startMinutes
 }
 
-// Define a type for the TimetableSlot with included relations
+// Define a type for the TimetableSlot with included relations that matches your actual query
 type TimetableSlotWithRelations = Prisma.TimetableSlotGetPayload<{
   include: {
     lesson: {
@@ -24,7 +24,12 @@ type TimetableSlotWithRelations = Prisma.TimetableSlotGetPayload<{
     }
     teacher: {
       include: {
-        user: true // Include the user relation for teacher's name
+        user: {
+          select: {
+            name: true
+            surname: true
+          }
+        }
       }
     }
     room: true
@@ -110,7 +115,7 @@ export const getTimetableForChild = async (req: Request, res: Response) => {
       slotWhereClause.teacherId = String(teacherId)
     }
 
-    // 4. Fetch timetable slots - Fixed: Use include instead of select for lesson
+    // 4. Fetch timetable slots - Now the type matches the query
     const timetableSlots: TimetableSlotWithRelations[] = await prisma.timetableSlot.findMany({
       where: slotWhereClause,
       include: {

@@ -25,22 +25,60 @@ const getAssignments = async (req, res) => {
         const page = Number.parseInt(req.query.page) || 1;
         const limit = Number.parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
-        const filter = (0, setup_1.getTenantFilter)(req.user);
         // Filter by class if specified
         const classId = req.query.classId;
         const subjectId = req.query.subjectId;
         const status = req.query.status;
-        const where = {
-            ...filter,
-            ...(classId && { classId }),
-            ...(subjectId && { subjectId }),
-            ...(status === "upcoming" && { startDate: { gt: new Date() } }),
-            ...(status === "active" && {
-                startDate: { lte: new Date() },
-                dueDate: { gte: new Date() },
-            }),
-            ...(status === "overdue" && { dueDate: { lt: new Date() } }),
-        };
+        let where = {};
+        // Apply tenant filtering based on user role
+        if (req.user?.role === "SUPER_ADMIN") {
+            // Super admin sees all assignments
+            where = {};
+        }
+        else if (req.user?.role === "TEACHER") {
+            // Teachers see only their assignments
+            where = {
+                teacherId: req.user.id,
+                ...(0, setup_1.getTenantFilter)(req.user),
+            };
+        }
+        else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN") {
+            // School staff see assignments in their school
+            where = (0, setup_1.getTenantFilter)(req.user);
+        }
+        else if (req.user?.role === "PARENT") {
+            // Parents see assignments for their children's classes
+            const schoolIds = await (0, setup_1.getParentSchoolIds)(req.user.id);
+            where = {
+                schoolId: { in: schoolIds },
+                OR: [
+                    {
+                        class: {
+                            students: {
+                                some: { parentId: req.user.id },
+                            },
+                        },
+                    },
+                    {
+                        assignmentType: "CLASS_WIDE",
+                        schoolId: { in: schoolIds },
+                    },
+                ],
+            };
+        }
+        // Apply additional filters
+        if (classId)
+            where.classId = classId;
+        if (subjectId)
+            where.subjectId = subjectId;
+        if (status === "upcoming")
+            where.startDate = { gt: new Date() };
+        if (status === "active") {
+            where.startDate = { lte: new Date() };
+            where.dueDate = { gte: new Date() };
+        }
+        if (status === "overdue")
+            where.dueDate = { lt: new Date() };
         const [assignments, total] = await Promise.all([
             setup_1.prisma.assignment.findMany({
                 where,
@@ -49,6 +87,7 @@ const getAssignments = async (req, res) => {
                 include: {
                     subject: { select: { name: true, code: true } },
                     class: { select: { name: true } },
+                    school: { select: { name: true } },
                     teacher: {
                         include: {
                             user: { select: { name: true, surname: true } },
@@ -62,6 +101,7 @@ const getAssignments = async (req, res) => {
         ]);
         setup_1.logger.info("Assignments retrieved", {
             userId: req.user?.id,
+            userRole: req.user?.role,
             page,
             limit,
             total,

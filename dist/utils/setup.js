@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateStudentAccess = exports.validateSchoolAccess = exports.calculateTransactionFee = exports.createNotification = exports.createPaginationResult = exports.getPagination = exports.handleError = exports.getTeacherTenantFilter = exports.getParentTenantFilter = exports.getTenantFilter = exports.authMiddleware = exports.logger = exports.prisma = void 0;
+exports.calculateAge = exports.validateStudentAccess = exports.validateSchoolAccess = exports.calculateTransactionFee = exports.createNotification = exports.createPaginationResult = exports.getPagination = exports.handleError = exports.getTeacherTenantFilter = exports.getTeacherParentFilter = exports.getTeacherStudentFilter = exports.getParentTenantFilter = exports.getParentSchoolIds = exports.getTenantFilter = exports.authMiddleware = exports.verifyPassword = exports.hashPassword = exports.logger = exports.prisma = void 0;
 const client_1 = require("@prisma/client");
 const winston_1 = __importDefault(require("winston"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
 // Prisma Client with multi-tenant support
 exports.prisma = new client_1.PrismaClient();
 // Logger
@@ -21,6 +22,17 @@ exports.logger = winston_1.default.createLogger({
 if (process.env.NODE_ENV !== "production") {
     exports.logger.add(new winston_1.default.transports.Console({ format: winston_1.default.format.simple() }));
 }
+// Password hashing utility
+const hashPassword = async (password) => {
+    const saltRounds = 12;
+    return await bcrypt_1.default.hash(password, saltRounds);
+};
+exports.hashPassword = hashPassword;
+// Password verification utility
+const verifyPassword = async (password, hashedPassword) => {
+    return await bcrypt_1.default.compare(password, hashedPassword);
+};
+exports.verifyPassword = verifyPassword;
 const authMiddleware = (requiredRoles) => async (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
@@ -77,25 +89,81 @@ const getTenantFilter = (user) => {
     if (!user || user.role === "SUPER_ADMIN") {
         return {}; // Super admin can access all data
     }
-    // Parents don't have a single school filter since they can have children in multiple schools
-    if (user.role === "PARENT") {
-        return {}; // Parent filtering is handled at the query level
-    }
-    if (user.schoolId) {
+    // For school-based roles, filter by their school
+    if (user.schoolId && ["SCHOOL_ADMIN", "PRINCIPAL", "TEACHER"].includes(user.role)) {
         return { schoolId: user.schoolId };
     }
+    // Parents don't have a single school filter since they can have children in multiple schools
+    // Parent filtering is handled at the query level in individual controllers
     return {};
 };
 exports.getTenantFilter = getTenantFilter;
+// Get schools where parent has children (for parent multi-tenant filtering)
+const getParentSchoolIds = async (parentId) => {
+    const students = await exports.prisma.student.findMany({
+        where: { parentId },
+        select: { schoolId: true },
+        distinct: ["schoolId"],
+    });
+    return students.map((s) => s.schoolId);
+};
+exports.getParentSchoolIds = getParentSchoolIds;
 // Enhanced tenant filter for parent-specific queries
-const getParentTenantFilter = (parentId) => {
+const getParentTenantFilter = async (parentId) => {
+    const schoolIds = await (0, exports.getParentSchoolIds)(parentId);
     return {
-        students: {
-            some: { parentId: parentId },
-        },
+        schoolId: { in: schoolIds },
     };
 };
 exports.getParentTenantFilter = getParentTenantFilter;
+// Enhanced tenant filter for teacher-specific student queries
+const getTeacherStudentFilter = (teacherId, schoolId) => {
+    const baseFilter = {
+        OR: [
+            {
+                class: { supervisorId: teacherId },
+            },
+            {
+                class: {
+                    lessons: {
+                        some: { teacherId: teacherId },
+                    },
+                },
+            },
+        ],
+    };
+    if (schoolId) {
+        baseFilter.schoolId = schoolId;
+    }
+    return baseFilter;
+};
+exports.getTeacherStudentFilter = getTeacherStudentFilter;
+// Enhanced tenant filter for teacher-specific parent queries
+const getTeacherParentFilter = (teacherId, schoolId) => {
+    const baseFilter = {
+        children: {
+            some: {
+                OR: [
+                    {
+                        class: { supervisorId: teacherId },
+                    },
+                    {
+                        class: {
+                            lessons: {
+                                some: { teacherId: teacherId },
+                            },
+                        },
+                    },
+                ],
+            },
+        },
+    };
+    if (schoolId) {
+        baseFilter.children.some.schoolId = schoolId;
+    }
+    return baseFilter;
+};
+exports.getTeacherParentFilter = getTeacherParentFilter;
 // Enhanced tenant filter for teacher-specific queries
 const getTeacherTenantFilter = (teacherId, schoolId) => {
     const baseFilter = {
@@ -239,3 +307,16 @@ const validateStudentAccess = async (userId, studentId, userRole) => {
     }
 };
 exports.validateStudentAccess = validateStudentAccess;
+const calculateAge = (birthDate) => {
+    if (!birthDate) {
+        return null;
+    }
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age;
+};
+exports.calculateAge = calculateAge;

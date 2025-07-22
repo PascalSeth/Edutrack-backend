@@ -293,24 +293,37 @@ const getTeacherDashboard = async (req, res) => {
                 orderBy: { date: "desc" },
                 take: 10,
             }),
+            // Get upcoming lessons with timetable information
             setup_1.prisma.lesson.findMany({
                 where: { teacherId: req.user.id },
                 include: {
                     subject: { select: { name: true } },
                     class: { select: { name: true } },
-                    timetableSlots: {
-                        where: {
-                            startTime: {
-                                gte: new Date(),
-                                lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-                            },
-                        },
-                        orderBy: { startTime: "asc" },
-                        take: 5,
-                    },
                 },
             }),
         ]);
+        // Get timetable slots for upcoming lessons
+        const upcomingTimetableSlots = await setup_1.prisma.timetableSlot.findMany({
+            where: {
+                lesson: {
+                    teacherId: req.user.id,
+                },
+                startTime: {
+                    gte: new Date().toISOString(),
+                    lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                },
+            },
+            include: {
+                lesson: {
+                    include: {
+                        subject: { select: { name: true } },
+                        class: { select: { name: true } },
+                    },
+                },
+            },
+            orderBy: { startTime: "asc" },
+            take: 5,
+        });
         const dashboard = {
             overview: {
                 totalClasses: myClasses.length,
@@ -322,7 +335,7 @@ const getTeacherDashboard = async (req, res) => {
             mySubjects,
             recentAssignments: myAssignments,
             recentAttendance,
-            upcomingLessons: upcomingLessons.filter((lesson) => lesson.timetableSlots.length > 0),
+            upcomingLessons: upcomingTimetableSlots,
         };
         setup_1.logger.info("Teacher dashboard retrieved", { userId: req.user?.id });
         res.status(200).json({
@@ -399,10 +412,11 @@ const getParentDashboard = async (req, res) => {
                     exam: {
                         select: {
                             title: true,
-                            examQuestion: {
+                            examQuestions: {
                                 select: {
                                     subject: { select: { name: true } },
                                 },
+                                take: 1,
                             },
                         },
                     },

@@ -26,22 +26,45 @@ const getEvents = async (req, res) => {
         const page = Number.parseInt(req.query.page) || 1;
         const limit = Number.parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
-        const filter = (0, setup_1.getTenantFilter)(req.user);
         const eventType = req.query.eventType;
         const classId = req.query.classId;
         const upcoming = req.query.upcoming === "true";
         const startDate = req.query.startDate;
         const endDate = req.query.endDate;
-        const where = { ...filter };
-        if (eventType) {
+        let where = {};
+        // Apply tenant filtering based on user role
+        if (req.user?.role === "SUPER_ADMIN") {
+            // Super admin sees all events
+            where = {};
+        }
+        else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN" || req.user?.role === "TEACHER") {
+            // School staff see events in their school
+            where = (0, setup_1.getTenantFilter)(req.user);
+        }
+        else if (req.user?.role === "PARENT") {
+            // Parents see events from schools where their children are enrolled
+            const schoolIds = await getParentSchoolIds(req.user.id);
+            where = {
+                schoolId: { in: schoolIds },
+                OR: [
+                    { classId: null }, // School-wide events
+                    {
+                        class: {
+                            students: {
+                                some: { parentId: req.user.id },
+                            },
+                        },
+                    },
+                ],
+            };
+        }
+        // Apply additional filters
+        if (eventType)
             where.eventType = eventType;
-        }
-        if (classId) {
+        if (classId)
             where.classId = classId;
-        }
-        if (upcoming) {
+        if (upcoming)
             where.startTime = { gte: new Date() };
-        }
         if (startDate && endDate) {
             where.startTime = {
                 gte: new Date(startDate),
@@ -54,6 +77,7 @@ const getEvents = async (req, res) => {
                 skip,
                 take: limit,
                 include: {
+                    school: { select: { name: true } },
                     class: { select: { name: true } },
                     createdBy: {
                         include: {
@@ -68,6 +92,7 @@ const getEvents = async (req, res) => {
         ]);
         setup_1.logger.info("Events retrieved", {
             userId: req.user?.id,
+            userRole: req.user?.role,
             page,
             limit,
             total,
@@ -536,3 +561,10 @@ const getUpcomingEvents = async (req, res) => {
     }
 };
 exports.getUpcomingEvents = getUpcomingEvents;
+async function getParentSchoolIds(parentId) {
+    const children = await setup_1.prisma.student.findMany({
+        where: { parentId: parentId },
+        select: { schoolId: true },
+    });
+    return children.map((child) => child.schoolId).filter((schoolId) => schoolId !== null);
+}

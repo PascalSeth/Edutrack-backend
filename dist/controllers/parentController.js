@@ -1,16 +1,87 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getParentsBySchool = exports.getParentChildrenAcrossSchools = exports.deleteParent = exports.updateParent = exports.createParent = exports.getParentById = exports.getParents = void 0;
 const zod_1 = require("zod");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const setup_1 = require("../utils/setup");
 // Validation Schemas
-const createParentSchema = zod_1.z.object({
-    userId: zod_1.z.string().uuid("Invalid user ID"),
+const createParentSchema = zod_1.z
+    .object({
+    userId: zod_1.z.string().uuid("Invalid user ID").optional(),
+    userDetails: zod_1.z
+        .object({
+        email: zod_1.z.string().email("Invalid email address"),
+        name: zod_1.z.string().min(2, "Name must be at least 2 characters"),
+        surname: zod_1.z.string().min(2, "Surname must be at least 2 characters"),
+        phone: zod_1.z.string().optional(),
+        address: zod_1.z.string().optional(),
+        password: zod_1.z.string().min(6, "Password must be at least 6 characters"),
+    })
+        .optional(),
+})
+    .refine((data) => data.userId !== undefined || data.userDetails !== undefined, {
+    message: "Either userId or userDetails must be provided",
+    path: ["userId"],
+})
+    .refine((data) => !(data.userId !== undefined && data.userDetails !== undefined), {
+    message: "Cannot provide both userId and userDetails",
+    path: ["userId"],
 });
 const updateParentSchema = zod_1.z.object({
     // Parent model has minimal direct fields to update
     verificationStatus: zod_1.z.enum(["PENDING", "VERIFIED", "REJECTED"]).optional(),
 });
+const getTenantFilter = (user) => {
+    if (user?.role === "PRINCIPAL" || user?.role === "SCHOOL_ADMIN") {
+        return {
+            schoolId: user.schoolId,
+        };
+    }
+    return {};
+};
+const getTeacherStudentFilter = (teacherId, schoolId) => {
+    return {
+        OR: [
+            {
+                class: { supervisorId: teacherId },
+                schoolId,
+            },
+            {
+                class: {
+                    lessons: {
+                        some: { teacherId },
+                    },
+                },
+                schoolId,
+            },
+        ],
+    };
+};
+const getTeacherParentFilter = (teacherId, schoolId) => {
+    return {
+        children: {
+            some: {
+                OR: [
+                    {
+                        class: { supervisorId: teacherId },
+                        schoolId,
+                    },
+                    {
+                        class: {
+                            lessons: {
+                                some: { teacherId },
+                            },
+                        },
+                        schoolId,
+                    },
+                ],
+            },
+        },
+    };
+};
 const getParents = async (req, res) => {
     try {
         const page = Number.parseInt(req.query.page) || 1;
@@ -18,7 +89,15 @@ const getParents = async (req, res) => {
         const skip = (page - 1) * limit;
         let where = {};
         // Apply tenant filtering based on user role
-        if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN") {
+        if (req.user?.role === "SUPER_ADMIN") {
+            // Super admin sees all parents
+            where = {};
+        }
+        else if (req.user?.role === "PARENT") {
+            // Parents can only see their own record
+            where = { id: req.user.id };
+        }
+        else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN") {
             // Show parents who have children in this school
             where = {
                 children: {
@@ -30,24 +109,7 @@ const getParents = async (req, res) => {
         }
         else if (req.user?.role === "TEACHER") {
             // Show parents of students in teacher's classes
-            where = {
-                children: {
-                    some: {
-                        OR: [
-                            {
-                                class: { supervisorId: req.user.id },
-                            },
-                            {
-                                class: {
-                                    lessons: {
-                                        some: { teacherId: req.user.id },
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                },
-            };
+            where = getTeacherParentFilter(req.user.id, req.user?.schoolId);
         }
         const [parents, total] = await Promise.all([
             setup_1.prisma.parent.findMany({
@@ -66,6 +128,14 @@ const getParents = async (req, res) => {
                         },
                     },
                     children: {
+                        // For non-super admins, filter children by accessible schools
+                        where: req.user?.role === "SUPER_ADMIN"
+                            ? {}
+                            : req.user?.role === "PARENT"
+                                ? {}
+                                : req.user?.role === "TEACHER"
+                                    ? getTeacherStudentFilter(req.user.id, req.user?.schoolId)
+                                    : getTenantFilter(req.user),
                         include: {
                             school: { select: { id: true, name: true } },
                             class: { select: { name: true } },
@@ -86,10 +156,10 @@ const getParents = async (req, res) => {
         ]);
         setup_1.logger.info("Parents retrieved", {
             userId: req.user?.id,
+            userRole: req.user?.role,
             page,
             limit,
             total,
-            userRole: req.user?.role,
         });
         res.status(200).json({
             message: "Parents retrieved successfully",
@@ -226,27 +296,62 @@ const createParent = async (req, res) => {
         if (!["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"].includes(req.user?.role || "")) {
             return res.status(403).json({ message: "Access denied" });
         }
-        // Verify user exists and has PARENT role
-        const user = await setup_1.prisma.user.findUnique({ where: { id: data.userId } });
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
+        let userId;
+        if (data.userId) {
+            // Creating parent record for existing user
+            const user = await setup_1.prisma.user.findUnique({ where: { id: data.userId } });
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            if (user.role !== "PARENT") {
+                return res.status(400).json({ message: "User must have PARENT role" });
+            }
+            userId = data.userId;
         }
-        if (user.role !== "PARENT") {
-            return res.status(400).json({ message: "User must have PARENT role" });
+        else if (data.userDetails) {
+            // Creating both user and parent records
+            const { email, name, surname, phone, address, password } = data.userDetails;
+            // Check if user with email already exists
+            const existingUser = await setup_1.prisma.user.findUnique({ where: { email } });
+            if (existingUser) {
+                return res.status(409).json({ message: "User with this email already exists" });
+            }
+            // Hash password
+            const hashedPassword = await bcryptjs_1.default.hash(password, 12);
+            // Generate username from email
+            const username = email.split("@")[0];
+            // Create user with PARENT role
+            const user = await setup_1.prisma.user.create({
+                data: {
+                    email,
+                    username,
+                    name,
+                    surname,
+                    phone,
+                    address,
+                    passwordHash: hashedPassword,
+                    role: "PARENT",
+                },
+            });
+            userId = user.id;
+        }
+        else {
+            return res.status(400).json({ message: "Either userId or userDetails must be provided" });
         }
         // Check if parent record already exists
-        const existingParent = await setup_1.prisma.parent.findUnique({ where: { id: data.userId } });
+        const existingParent = await setup_1.prisma.parent.findUnique({ where: { id: userId } });
         if (existingParent) {
             return res.status(409).json({ message: "Parent record already exists for this user" });
         }
         const parent = await setup_1.prisma.parent.create({
             data: {
-                id: data.userId,
+                id: userId,
                 verificationStatus: "PENDING",
             },
             include: {
                 user: {
                     select: {
+                        id: true,
                         email: true,
                         name: true,
                         surname: true,

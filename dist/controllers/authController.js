@@ -355,14 +355,21 @@ const login = async (req, res) => {
                 name: user.name,
                 surname: user.surname,
                 role: user.role,
-                schoolId: school?.id,
-                schoolName: school?.name,
                 approvalStatus,
                 profileImageUrl: user.profileImageUrl,
                 isSuperAdmin: user.role === "SUPER_ADMIN",
                 isParent: user.role === "PARENT",
                 ...(childrenSummary && { childrenSummary }),
             },
+            school: school ? {
+                id: school.id,
+                name: school.name,
+                logoUrl: school.logoUrl,
+                city: school.city,
+                state: school.state,
+                country: school.country,
+                motto: school.missionStatement
+            } : null,
             accessToken,
             refreshToken,
         });

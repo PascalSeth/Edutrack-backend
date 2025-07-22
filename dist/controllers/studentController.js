@@ -1,10 +1,16 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getStudentsBySchool = exports.deleteStudent = exports.updateStudent = exports.createStudent = exports.getStudentById = exports.getStudents = void 0;
 const zod_1 = require("zod");
 const setup_1 = require("../utils/setup");
+const bcrypt_1 = __importDefault(require("bcrypt"));
 // Validation Schemas
-const createStudentSchema = zod_1.z.object({
+const createStudentSchema = zod_1.z
+    .object({
+    // Student details
     registrationNumber: zod_1.z.string().min(1, "Registration number is required"),
     name: zod_1.z.string().min(1, "Name is required"),
     surname: zod_1.z.string().min(1, "Surname is required"),
@@ -14,9 +20,31 @@ const createStudentSchema = zod_1.z.object({
     sex: zod_1.z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
     birthday: zod_1.z.string().datetime().optional(),
     schoolId: zod_1.z.string().uuid("Invalid school ID"),
-    parentId: zod_1.z.string().uuid("Invalid parent ID"),
     classId: zod_1.z.string().uuid("Invalid class ID").optional(),
     gradeId: zod_1.z.string().uuid("Invalid grade ID").optional(),
+    // Parent details (optional - if not provided, parentId must be provided)
+    parentDetails: zod_1.z
+        .object({
+        email: zod_1.z.string().email("Invalid email"),
+        username: zod_1.z.string().min(3, "Username must be at least 3 characters"),
+        password: zod_1.z.string().min(8, "Password must be at least 8 characters"),
+        name: zod_1.z.string().min(1, "Parent name is required"),
+        surname: zod_1.z.string().min(1, "Parent surname is required"),
+        phone: zod_1.z.string().optional(),
+        address: zod_1.z.string().optional(),
+    })
+        .optional(),
+    // Alternative: existing parent ID
+    parentId: zod_1.z.string().uuid("Invalid parent ID").optional(),
+})
+    .refine((data) => {
+    // Either parentDetails or parentId must be provided, but not both
+    const hasParentDetails = data.parentDetails !== undefined;
+    const hasParentId = data.parentId !== undefined;
+    return (hasParentDetails && !hasParentId) || (!hasParentDetails && hasParentId);
+}, {
+    message: "Either parent details or existing parent ID must be provided, but not both",
+    path: ["parentDetails"],
 });
 const updateStudentSchema = zod_1.z.object({
     registrationNumber: zod_1.z.string().min(1).optional(),
@@ -38,26 +66,20 @@ const getStudents = async (req, res) => {
         const skip = (page - 1) * limit;
         let where = {};
         // Apply tenant filtering based on user role
-        if (req.user?.role === "PARENT") {
+        if (req.user?.role === "SUPER_ADMIN") {
+            // Super admin sees all students
+            where = {};
+        }
+        else if (req.user?.role === "PARENT") {
+            // Parents see only their own children
             where = { parentId: req.user.id };
         }
         else if (req.user?.role === "TEACHER") {
-            where = {
-                OR: [
-                    {
-                        class: { supervisorId: req.user.id },
-                    },
-                    {
-                        class: {
-                            lessons: {
-                                some: { teacherId: req.user.id },
-                            },
-                        },
-                    },
-                ],
-            };
+            // Teachers see students in their classes or lessons
+            where = getTeacherStudentFilter(req.user.id, req.user?.schoolId);
         }
         else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN") {
+            // School admins and principals see students in their school
             where = (0, setup_1.getTenantFilter)(req.user);
         }
         const [students, total] = await Promise.all([
@@ -112,10 +134,10 @@ const getStudents = async (req, res) => {
         ]);
         setup_1.logger.info("Students retrieved", {
             userId: req.user?.id,
+            userRole: req.user?.role,
             page,
             limit,
             total,
-            userRole: req.user?.role,
         });
         res.status(200).json({
             message: "Students retrieved successfully",
@@ -223,7 +245,7 @@ const getStudentById = async (req, res) => {
                         exam: {
                             select: {
                                 title: true,
-                                examQuestion: {
+                                examQuestions: {
                                     select: {
                                         subject: { select: { name: true } },
                                     },
@@ -287,11 +309,6 @@ const createStudent = async (req, res) => {
         if (!school) {
             return res.status(404).json({ message: "School not found or access denied" });
         }
-        // Verify parent exists
-        const parent = await setup_1.prisma.parent.findUnique({ where: { id: data.parentId } });
-        if (!parent) {
-            return res.status(404).json({ message: "Parent not found" });
-        }
         // Verify class and grade if provided
         if (data.classId) {
             const classRecord = await setup_1.prisma.class.findFirst({
@@ -333,6 +350,80 @@ const createStudent = async (req, res) => {
                 message: "A student with this registration number already exists in this school",
             });
         }
+        let parentId;
+        // Handle parent creation or validation
+        if (data.parentDetails) {
+            // Create new parent user and parent record
+            const { parentDetails } = data;
+            // Check if user already exists
+            const existingUser = await setup_1.prisma.user.findFirst({
+                where: {
+                    OR: [{ email: parentDetails.email }, { username: parentDetails.username }],
+                },
+            });
+            if (existingUser) {
+                return res.status(409).json({
+                    message: "A user with this email or username already exists",
+                });
+            }
+            // Hash password
+            const passwordHash = await bcrypt_1.default.hash(parentDetails.password, 12);
+            // Create parent user and parent record in transaction
+            const parentResult = await setup_1.prisma.$transaction(async (tx) => {
+                // Create user
+                const newUser = await tx.user.create({
+                    data: {
+                        email: parentDetails.email,
+                        username: parentDetails.username,
+                        passwordHash,
+                        name: parentDetails.name,
+                        surname: parentDetails.surname,
+                        role: "PARENT",
+                        phone: parentDetails.phone,
+                        address: parentDetails.address,
+                    },
+                });
+                // Create parent record
+                const newParent = await tx.parent.create({
+                    data: {
+                        id: newUser.id,
+                        verificationStatus: "PENDING",
+                    },
+                });
+                return { user: newUser, parent: newParent };
+            });
+            parentId = parentResult.parent.id;
+            // Send welcome notification to new parent
+            await setup_1.prisma.notification.create({
+                data: {
+                    userId: parentId,
+                    title: "Welcome to EduTrack!",
+                    content: `Your parent account has been created. A student record for ${data.name} ${data.surname} has been created at ${school.name}.`,
+                    type: "GENERAL",
+                },
+            });
+            setup_1.logger.info("Parent user created during student creation", {
+                userId: req.user?.id,
+                parentId: parentId,
+                parentEmail: parentDetails.email,
+            });
+        }
+        else if (data.parentId) {
+            // Verify existing parent
+            const parent = await setup_1.prisma.parent.findUnique({
+                where: { id: data.parentId },
+                include: { user: true },
+            });
+            if (!parent) {
+                return res.status(404).json({ message: "Parent not found" });
+            }
+            parentId = data.parentId;
+        }
+        else {
+            // This should not happen due to schema validation, but just in case
+            return res.status(400).json({ message: "Parent details or parent ID is required" });
+        }
+        // Create student record
         const student = await setup_1.prisma.student.create({
             data: {
                 registrationNumber: data.registrationNumber,
@@ -344,7 +435,7 @@ const createStudent = async (req, res) => {
                 sex: data.sex,
                 birthday: data.birthday ? new Date(data.birthday) : undefined,
                 schoolId: data.schoolId,
-                parentId: data.parentId,
+                parentId: parentId,
                 classId: data.classId,
                 gradeId: data.gradeId,
                 verificationStatus: "PENDING",
@@ -353,28 +444,36 @@ const createStudent = async (req, res) => {
                 school: { select: { name: true } },
                 parent: {
                     include: {
-                        user: { select: { name: true, surname: true } },
+                        user: { select: { name: true, surname: true, email: true } },
                     },
                 },
                 class: { select: { name: true } },
                 grade: { select: { name: true } },
             },
         });
-        // Notify parent about the new student record
-        await setup_1.prisma.notification.create({
-            data: {
-                userId: data.parentId,
-                title: "Student Record Created",
-                content: `A student record for ${data.name} ${data.surname} has been created at ${school.name}. Verification is pending.`,
-                type: "GENERAL",
-            },
-        });
+        // Notify parent about the new student record (if using existing parent)
+        if (data.parentId) {
+            await setup_1.prisma.notification.create({
+                data: {
+                    userId: parentId,
+                    title: "Student Record Created",
+                    content: `A student record for ${data.name} ${data.surname} has been created at ${school.name}. Verification is pending.`,
+                    type: "GENERAL",
+                },
+            });
+        }
         setup_1.logger.info("Student created", {
             userId: req.user?.id,
             studentId: student.id,
             schoolId: data.schoolId,
+            parentId: parentId,
+            newParentCreated: !!data.parentDetails,
         });
-        res.status(201).json({ message: "Student created successfully", student });
+        res.status(201).json({
+            message: "Student created successfully",
+            student,
+            parentCreated: !!data.parentDetails,
+        });
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {
@@ -654,3 +753,20 @@ const getStudentsBySchool = async (req, res) => {
     }
 };
 exports.getStudentsBySchool = getStudentsBySchool;
+async function getTeacherStudentFilter(teacherId, schoolId) {
+    return {
+        schoolId,
+        OR: [
+            {
+                class: { supervisorId: teacherId },
+            },
+            {
+                class: {
+                    lessons: {
+                        some: { teacherId: teacherId },
+                    },
+                },
+            },
+        ],
+    };
+}
