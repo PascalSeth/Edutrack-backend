@@ -1,22 +1,52 @@
 import type { Response } from "express"
 import { z } from "zod"
 import { prisma, type AuthRequest, handleError, logger, getTenantFilter } from "../utils/setup"
+import bcrypt from "bcrypt"
 
 // Validation Schemas
-const createStudentSchema = z.object({
-  registrationNumber: z.string().min(1, "Registration number is required"),
-  name: z.string().min(1, "Name is required"),
-  surname: z.string().min(1, "Surname is required"),
-  address: z.string().optional(),
-  imageUrl: z.string().url().optional(),
-  bloodType: z.string().optional(),
-  sex: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
-  birthday: z.string().datetime().optional(),
-  schoolId: z.string().uuid("Invalid school ID"),
-  parentId: z.string().uuid("Invalid parent ID"),
-  classId: z.string().uuid("Invalid class ID").optional(),
-  gradeId: z.string().uuid("Invalid grade ID").optional(),
-})
+const createStudentSchema = z
+  .object({
+    // Student details
+    registrationNumber: z.string().min(1, "Registration number is required"),
+    name: z.string().min(1, "Name is required"),
+    surname: z.string().min(1, "Surname is required"),
+    address: z.string().optional(),
+    imageUrl: z.string().url().optional(),
+    bloodType: z.string().optional(),
+    sex: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
+    birthday: z.string().datetime().optional(),
+    schoolId: z.string().uuid("Invalid school ID"),
+    classId: z.string().uuid("Invalid class ID").optional(),
+    gradeId: z.string().uuid("Invalid grade ID").optional(),
+
+    // Parent details (optional - if not provided, parentId must be provided)
+    parentDetails: z
+      .object({
+        email: z.string().email("Invalid email"),
+        username: z.string().min(3, "Username must be at least 3 characters"),
+        password: z.string().min(8, "Password must be at least 8 characters"),
+        name: z.string().min(1, "Parent name is required"),
+        surname: z.string().min(1, "Parent surname is required"),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+      })
+      .optional(),
+
+    // Alternative: existing parent ID
+    parentId: z.string().uuid("Invalid parent ID").optional(),
+  })
+  .refine(
+    (data) => {
+      // Either parentDetails or parentId must be provided, but not both
+      const hasParentDetails = data.parentDetails !== undefined
+      const hasParentId = data.parentId !== undefined
+      return (hasParentDetails && !hasParentId) || (!hasParentDetails && hasParentId)
+    },
+    {
+      message: "Either parent details or existing parent ID must be provided, but not both",
+      path: ["parentDetails"],
+    },
+  )
 
 const updateStudentSchema = z.object({
   registrationNumber: z.string().min(1).optional(),
@@ -288,12 +318,6 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: "School not found or access denied" })
     }
 
-    // Verify parent exists
-    const parent = await prisma.parent.findUnique({ where: { id: data.parentId } })
-    if (!parent) {
-      return res.status(404).json({ message: "Parent not found" })
-    }
-
     // Verify class and grade if provided
     if (data.classId) {
       const classRecord = await prisma.class.findFirst({
@@ -339,6 +363,91 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
       })
     }
 
+    let parentId: string
+
+    // Handle parent creation or validation
+    if (data.parentDetails) {
+      // Create new parent user and parent record
+      const { parentDetails } = data
+
+      // Check if user already exists
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [{ email: parentDetails.email }, { username: parentDetails.username }],
+        },
+      })
+
+      if (existingUser) {
+        return res.status(409).json({
+          message: "A user with this email or username already exists",
+        })
+      }
+
+      // Hash password
+      const passwordHash = await bcrypt.hash(parentDetails.password, 12)
+
+      // Create parent user and parent record in transaction
+      const parentResult = await prisma.$transaction(async (tx) => {
+        // Create user
+        const newUser = await tx.user.create({
+          data: {
+            email: parentDetails.email,
+            username: parentDetails.username,
+            passwordHash,
+            name: parentDetails.name,
+            surname: parentDetails.surname,
+            role: "PARENT",
+            phone: parentDetails.phone,
+            address: parentDetails.address,
+          },
+        })
+
+        // Create parent record
+        const newParent = await tx.parent.create({
+          data: {
+            id: newUser.id,
+            verificationStatus: "PENDING",
+          },
+        })
+
+        return { user: newUser, parent: newParent }
+      })
+
+      parentId = parentResult.parent.id
+
+      // Send welcome notification to new parent
+      await prisma.notification.create({
+        data: {
+          userId: parentId,
+          title: "Welcome to EduTrack!",
+          content: `Your parent account has been created. A student record for ${data.name} ${data.surname} has been created at ${school.name}.`,
+          type: "GENERAL",
+        },
+      })
+
+      logger.info("Parent user created during student creation", {
+        userId: req.user?.id,
+        parentId: parentId,
+        parentEmail: parentDetails.email,
+      })
+    } else if (data.parentId) {
+      // Verify existing parent
+      const parent = await prisma.parent.findUnique({
+        where: { id: data.parentId },
+        include: { user: true },
+      })
+
+      if (!parent) {
+        return res.status(404).json({ message: "Parent not found" })
+      }
+
+      parentId = data.parentId
+    } else {
+      // This should not happen due to schema validation, but just in case
+      return res.status(400).json({ message: "Parent details or parent ID is required" })
+    }
+
+    // Create student record
     const student = await prisma.student.create({
       data: {
         registrationNumber: data.registrationNumber,
@@ -350,7 +459,7 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
         sex: data.sex,
         birthday: data.birthday ? new Date(data.birthday) : undefined,
         schoolId: data.schoolId,
-        parentId: data.parentId,
+        parentId: parentId,
         classId: data.classId,
         gradeId: data.gradeId,
         verificationStatus: "PENDING",
@@ -359,7 +468,7 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
         school: { select: { name: true } },
         parent: {
           include: {
-            user: { select: { name: true, surname: true } },
+            user: { select: { name: true, surname: true, email: true } },
           },
         },
         class: { select: { name: true } },
@@ -367,23 +476,31 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
       },
     })
 
-    // Notify parent about the new student record
-    await prisma.notification.create({
-      data: {
-        userId: data.parentId,
-        title: "Student Record Created",
-        content: `A student record for ${data.name} ${data.surname} has been created at ${school.name}. Verification is pending.`,
-        type: "GENERAL",
-      },
-    })
+    // Notify parent about the new student record (if using existing parent)
+    if (data.parentId) {
+      await prisma.notification.create({
+        data: {
+          userId: parentId,
+          title: "Student Record Created",
+          content: `A student record for ${data.name} ${data.surname} has been created at ${school.name}. Verification is pending.`,
+          type: "GENERAL",
+        },
+      })
+    }
 
     logger.info("Student created", {
       userId: req.user?.id,
       studentId: student.id,
       schoolId: data.schoolId,
+      parentId: parentId,
+      newParentCreated: !!data.parentDetails,
     })
 
-    res.status(201).json({ message: "Student created successfully", student })
+    res.status(201).json({
+      message: "Student created successfully",
+      student,
+      parentCreated: !!data.parentDetails,
+    })
   } catch (error) {
     if (error instanceof z.ZodError) {
       logger.warn("Invalid input for student creation", { userId: req.user?.id, errors: error.errors })

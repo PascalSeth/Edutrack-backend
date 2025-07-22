@@ -5,10 +5,10 @@ import { authMiddleware } from '../utils/setup';
 
 const router = Router();
 
-router.get('/', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL']), getTeachers);
-router.get('/:id', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL', 'TEACHER']), getTeacherById);
-router.post('/', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL']), createTeacher);
-router.put('/:id', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL']), updateTeacher);
-router.delete('/:id', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL']), deleteTeacher);
+router.get('/', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL','SCHOOL_ADMIN']), getTeachers);
+router.get('/:id', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL', 'TEACHER','SCHOOL_ADMIN']), getTeacherById);
+router.post('/', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL','SCHOOL_ADMIN']), createTeacher);
+router.put('/:id', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL','SCHOOL_ADMIN']), updateTeacher);
+router.delete('/:id', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL','SCHOOL_ADMIN']), deleteTeacher);
 
 export default router;

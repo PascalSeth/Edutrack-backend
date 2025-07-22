@@ -2,6 +2,7 @@ import { Prisma, PrismaClient } from "@prisma/client"
 import winston from "winston"
 import type { Request, Response, NextFunction } from "express"
 import jwt from "jsonwebtoken"
+import bcrypt from "bcrypt"
 
 // Prisma Client with multi-tenant support
 export const prisma = new PrismaClient()
@@ -18,6 +19,17 @@ export const logger = winston.createLogger({
 
 if (process.env.NODE_ENV !== "production") {
   logger.add(new winston.transports.Console({ format: winston.format.simple() }))
+}
+
+// Password hashing utility
+export const hashPassword = async (password: string): Promise<string> => {
+  const saltRounds = 12
+  return await bcrypt.hash(password, saltRounds)
+}
+
+// Password verification utility
+export const verifyPassword = async (password: string, hashedPassword: string): Promise<boolean> => {
+  return await bcrypt.compare(password, hashedPassword)
 }
 
 // Enhanced Authentication Middleware with multi-tenant support
@@ -366,4 +378,16 @@ export const validateStudentAccess = async (userId: string, studentId: string, u
     default:
       return false
   }
+}
+export const calculateAge = (birthDate: Date | null | undefined): number | null => {
+  if (!birthDate) {
+    return null
+  }
+  const today = new Date()
+  let age = today.getFullYear() - birthDate.getFullYear()
+  const m = today.getMonth() - birthDate.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--
+  }
+  return age
 }

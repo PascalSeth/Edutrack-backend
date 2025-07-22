@@ -1,11 +1,31 @@
 import type { Response } from "express"
 import { z } from "zod"
+import bcrypt from "bcryptjs"
 import { prisma, type AuthRequest, handleError, logger } from "../utils/setup"
 
 // Validation Schemas
-const createParentSchema = z.object({
-  userId: z.string().uuid("Invalid user ID"),
-})
+const createParentSchema = z
+  .object({
+    userId: z.string().uuid("Invalid user ID").optional(),
+    userDetails: z
+      .object({
+        email: z.string().email("Invalid email address"),
+        name: z.string().min(2, "Name must be at least 2 characters"),
+        surname: z.string().min(2, "Surname must be at least 2 characters"),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        password: z.string().min(6, "Password must be at least 6 characters"),
+      })
+      .optional(),
+  })
+  .refine((data) => data.userId !== undefined || data.userDetails !== undefined, {
+    message: "Either userId or userDetails must be provided",
+    path: ["userId"],
+  })
+  .refine((data) => !(data.userId !== undefined && data.userDetails !== undefined), {
+    message: "Cannot provide both userId and userDetails",
+    path: ["userId"],
+  })
 
 const updateParentSchema = z.object({
   // Parent model has minimal direct fields to update
@@ -284,29 +304,68 @@ export const createParent = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: "Access denied" })
     }
 
-    // Verify user exists and has PARENT role
-    const user = await prisma.user.findUnique({ where: { id: data.userId } })
-    if (!user) {
-      return res.status(404).json({ message: "User not found" })
-    }
-    if (user.role !== "PARENT") {
-      return res.status(400).json({ message: "User must have PARENT role" })
+    let userId: string
+
+    if (data.userId) {
+      // Creating parent record for existing user
+      const user = await prisma.user.findUnique({ where: { id: data.userId } })
+      if (!user) {
+        return res.status(404).json({ message: "User not found" })
+      }
+      if (user.role !== "PARENT") {
+        return res.status(400).json({ message: "User must have PARENT role" })
+      }
+      userId = data.userId
+    } else if (data.userDetails) {
+      // Creating both user and parent records
+      const { email, name, surname, phone, address, password } = data.userDetails
+
+      // Check if user with email already exists
+      const existingUser = await prisma.user.findUnique({ where: { email } })
+      if (existingUser) {
+        return res.status(409).json({ message: "User with this email already exists" })
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 12)
+
+      // Generate username from email
+      const username = email.split("@")[0]
+
+      // Create user with PARENT role
+      const user = await prisma.user.create({
+        data: {
+          email,
+          username,
+          name,
+          surname,
+          phone,
+          address,
+          passwordHash: hashedPassword,
+          role: "PARENT",
+        },
+      })
+
+      userId = user.id
+    } else {
+      return res.status(400).json({ message: "Either userId or userDetails must be provided" })
     }
 
     // Check if parent record already exists
-    const existingParent = await prisma.parent.findUnique({ where: { id: data.userId } })
+    const existingParent = await prisma.parent.findUnique({ where: { id: userId } })
     if (existingParent) {
       return res.status(409).json({ message: "Parent record already exists for this user" })
     }
 
     const parent = await prisma.parent.create({
       data: {
-        id: data.userId,
+        id: userId,
         verificationStatus: "PENDING",
       },
       include: {
         user: {
           select: {
+            id: true,
             email: true,
             name: true,
             surname: true,

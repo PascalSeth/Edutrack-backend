@@ -11,10 +11,10 @@ import { authMiddleware } from "../utils/setup"
 const router = Router()
 
 // Record single attendance (teachers only)
-router.post("/", authMiddleware(["TEACHER"]), recordAttendance)
+router.post("/", authMiddleware(["TEACHER","SUPER_ADMIN"]), recordAttendance)
 
 // Record bulk attendance (teachers only)
-router.post("/bulk", authMiddleware(["TEACHER"]), recordBulkAttendance)
+router.post("/bulk", authMiddleware(["TEACHER","SUPER_ADMIN"]), recordBulkAttendance)
 
 // Get student attendance
 router.get(

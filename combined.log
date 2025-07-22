@@ -65,3 +65,448 @@
 {"level":"info","message":"Environment: development","timestamp":"2025-07-13T12:21:23.437Z"}
 {"level":"info","message":"Server running on port 3000","timestamp":"2025-07-17T19:23:43.311Z"}
 {"level":"info","message":"Environment: development","timestamp":"2025-07-17T19:23:43.316Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-18T06:32:24.484Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-18T06:32:24.490Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-18T06:33:36.854Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-18T06:33:36.859Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-18T07:03:32.502Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-18T07:03:32.507Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-18T07:03:46.316Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T07:03:47.949Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T07:03:54.139Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T07:04:00.461Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T07:04:35.312Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T07:04:37.004Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T07:04:38.476Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"School registered","schoolId":"cbc4c6c4-a61e-424d-abbc-4426f4319057","schoolName":"St.johns","timestamp":"2025-07-18T07:05:24.019Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T07:05:25.490Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","logoUrl":"https://zltkklcmflrkgfgspzjy.supabase.co/storage/v1/object/public/school-documents/logos/shoes.jpg-1752822373749","message":"School logo uploaded","schoolId":"cbc4c6c4-a61e-424d-abbc-4426f4319057","timestamp":"2025-07-18T07:06:17.585Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T07:06:19.069Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-18T07:06:49.744Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-18T07:06:51.288Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-18T07:06:52.760Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-18T07:06:54.296Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-18T07:06:55.728Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-18T07:06:57.209Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-18T07:06:58.849Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"expiredAt":"2025-07-18T07:18:44.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/super-admin","timestamp":"2025-07-18T07:46:58.481Z"}
+{"error":{"expiredAt":"2025-07-18T07:18:44.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/super-admin","timestamp":"2025-07-18T07:46:58.535Z"}
+{"error":{"expiredAt":"2025-07-18T07:18:44.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-18T08:02:48.278Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-18T08:02:55.558Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:02:57.120Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T08:03:03.280Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T08:03:09.370Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T08:07:57.556Z"}
+{"level":"info","message":"User logged out","timestamp":"2025-07-18T08:08:05.623Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-18T08:08:14.222Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:08:16.045Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:08:26.696Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:08:28.306Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"School registered","schoolId":"6314a914-6fc6-425d-b9b9-9369a4d174ab","schoolName":"Papa Kofi","timestamp":"2025-07-18T08:09:24.872Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:09:26.404Z","total":2,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"code":"LIMIT_UNEXPECTED_FILE","field":"file","level":"error","message":"Unhandled error: Unexpected field","name":"MulterError","stack":"MulterError: Unexpected field\n    at wrappedFileFilter (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\multer\\index.js:40:19)\n    at Multipart.<anonymous> (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\multer\\lib\\make-middleware.js:123:7)\n    at Multipart.emit (node:events:518:28)\n    at Multipart.emit (node:domain:489:12)\n    at HeaderParser.cb (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\busboy\\lib\\types\\multipart.js:358:14)\n    at HeaderParser.push (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\busboy\\lib\\types\\multipart.js:162:20)\n    at SBMH.ssCb [as _cb] (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\busboy\\lib\\types\\multipart.js:394:37)\n    at feed (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\streamsearch\\lib\\sbmh.js:200:10)\n    at SBMH.push (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\streamsearch\\lib\\sbmh.js:104:16)\n    at Multipart._write (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\busboy\\lib\\types\\multipart.js:567:19)","storageErrors":[],"timestamp":"2025-07-18T08:09:49.131Z"}
+{"code":"LIMIT_UNEXPECTED_FILE","field":"file","level":"error","message":"Unhandled error: Unexpected field","name":"MulterError","stack":"MulterError: Unexpected field\n    at wrappedFileFilter (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\multer\\index.js:40:19)\n    at Multipart.<anonymous> (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\multer\\lib\\make-middleware.js:123:7)\n    at Multipart.emit (node:events:518:28)\n    at Multipart.emit (node:domain:489:12)\n    at HeaderParser.cb (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\busboy\\lib\\types\\multipart.js:358:14)\n    at HeaderParser.push (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\busboy\\lib\\types\\multipart.js:162:20)\n    at SBMH.ssCb [as _cb] (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\busboy\\lib\\types\\multipart.js:394:37)\n    at feed (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\streamsearch\\lib\\sbmh.js:200:10)\n    at SBMH.push (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\streamsearch\\lib\\sbmh.js:104:16)\n    at Multipart._write (C:\\Users\\Pascal Seth\\Desktop\\Edutrack-backend-1\\node_modules\\busboy\\lib\\types\\multipart.js:567:19)","storageErrors":[],"timestamp":"2025-07-18T08:11:34.974Z"}
+{"level":"info","logoUrl":"https://zltkklcmflrkgfgspzjy.supabase.co/storage/v1/object/public/school-documents/logos/shoes.jpg-1752826417089","message":"School logo uploaded","schoolId":"6314a914-6fc6-425d-b9b9-9369a4d174ab","timestamp":"2025-07-18T08:13:41.805Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:13:45.026Z","total":2,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"errors":[{"code":"invalid_string","message":"Invalid email","path":["email"],"validation":"email"},{"code":"invalid_string","message":"Invalid url","path":["website"],"validation":"url"},{"code":"invalid_string","message":"Invalid url","path":["virtualTourUrl"],"validation":"url"}],"level":"warn","message":"Invalid input for school update","timestamp":"2025-07-18T08:14:12.734Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"errors":[{"code":"invalid_string","message":"Invalid email","path":["email"],"validation":"email"},{"code":"invalid_string","message":"Invalid url","path":["website"],"validation":"url"},{"code":"invalid_string","message":"Invalid url","path":["virtualTourUrl"],"validation":"url"}],"level":"warn","message":"Invalid input for school update","timestamp":"2025-07-18T08:15:34.020Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","logoUrl":"https://zltkklcmflrkgfgspzjy.supabase.co/storage/v1/object/public/school-documents/logos/bags.jpg-1752826626501","message":"School logo uploaded","schoolId":"6314a914-6fc6-425d-b9b9-9369a4d174ab","timestamp":"2025-07-18T08:17:10.133Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:17:12.244Z","total":2,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"errors":[{"code":"invalid_string","message":"Invalid email","path":["email"],"validation":"email"},{"code":"invalid_string","message":"Invalid url","path":["website"],"validation":"url"},{"code":"invalid_string","message":"Invalid url","path":["virtualTourUrl"],"validation":"url"}],"level":"warn","message":"Invalid input for school update","timestamp":"2025-07-18T08:17:17.681Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"School deleted","schoolId":"cbc4c6c4-a61e-424d-abbc-4426f4319057","timestamp":"2025-07-18T08:18:51.234Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:18:52.773Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"expiredAt":"2025-07-18T08:23:12.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-18T08:23:13.960Z"}
+{"email":"pascalelikem@gmail.com","level":"warn","message":"Login failed: User not found","timestamp":"2025-07-18T08:23:23.049Z"}
+{"email":"pascalelikem@gmail.com","level":"warn","message":"Login failed: User not found","timestamp":"2025-07-18T08:23:41.894Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T08:26:21.309Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-18T08:26:24.032Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:26:25.516Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T08:26:34.585Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T08:26:40.525Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:26:42.079Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:26:43.596Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"School deleted","schoolId":"6314a914-6fc6-425d-b9b9-9369a4d174ab","timestamp":"2025-07-18T08:26:51.297Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:26:53.318Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"School registered","schoolId":"767fc727-51df-41ae-937f-40536c6642bd","schoolName":"Olympis","timestamp":"2025-07-18T08:27:28.742Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:27:30.706Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-18T08:33:42.309Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-18T08:33:42.317Z"}
+{"level":"info","message":"School deleted","schoolId":"767fc727-51df-41ae-937f-40536c6642bd","timestamp":"2025-07-18T08:33:51.917Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:33:53.621Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"body":{"address":"kumasi","adminEmail":"pascalelikem@gmail.com","adminName":"Papa","adminPassword":"SecurePassword123!","adminSurname":"Kofi","adminUsername":"admin","city":"Kumasi","country":"Ghana","email":"taniqui64@gmail.com","missionStatement":"dfsdsfsd","name":"Quitani","phone":"+233261440480","postalCode":"12345","schoolType":"PRIMARY","state":"Illinois","virtualTourUrl":"http://localhost:3000/dashboard/schools","website":"http://localhost:3000/dashboard/schools"},"level":"info","message":"Register school request received","timestamp":"2025-07-18T08:34:30.331Z"}
+{"level":"info","message":"New school created within transaction","schoolId":"d0932530-94c1-4cda-8d8b-2a0df1557f2f","schoolName":"Quitani","timestamp":"2025-07-18T08:34:32.099Z"}
+{"level":"info","message":"Creating new admin user for the school.","timestamp":"2025-07-18T08:34:32.100Z"}
+{"level":"info","message":"Password hashed successfully.","timestamp":"2025-07-18T08:34:32.545Z"}
+{"adminUserId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9","email":"pascalelikem@gmail.com","level":"info","message":"New school admin user created and linked","timestamp":"2025-07-18T08:34:32.875Z","username":"admin"}
+{"adminUserId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9","level":"info","message":"SchoolAdmin record created","schoolId":"d0932530-94c1-4cda-8d8b-2a0df1557f2f","timestamp":"2025-07-18T08:34:33.242Z"}
+{"level":"info","message":"School registration transaction completed successfully","schoolId":"d0932530-94c1-4cda-8d8b-2a0df1557f2f","schoolName":"Quitani","timestamp":"2025-07-18T08:34:33.381Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T08:34:35.000Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"User logged out","timestamp":"2025-07-18T08:35:41.612Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"isParent":false,"isSuperAdmin":false,"level":"info","message":"User logged in","role":"SCHOOL_ADMIN","schoolId":"d0932530-94c1-4cda-8d8b-2a0df1557f2f","timestamp":"2025-07-18T08:36:26.528Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:36:35.281Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:36:42.112Z"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:36:56.286Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:36:56.294Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:36:56.300Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:36:56.309Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-18T08:37:00.120Z","total":0,"userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9","userRole":"SCHOOL_ADMIN"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-18T08:37:03.796Z","total":0,"userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9","userRole":"SCHOOL_ADMIN"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-18T08:37:07.572Z","total":0,"userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9","userRole":"SCHOOL_ADMIN"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:39:42.338Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:39:42.371Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:39:42.519Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:39:42.533Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:39:42.676Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:44:08.358Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T08:47:38.278Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T08:48:09.448Z"}
+{"level":"warn","message":"Insufficient permissions","path":"/logout","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T08:48:45.985Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"isParent":false,"isSuperAdmin":false,"level":"info","message":"User logged in","role":"SCHOOL_ADMIN","schoolId":"d0932530-94c1-4cda-8d8b-2a0df1557f2f","timestamp":"2025-07-18T08:48:59.939Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:49:07.261Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:49:16.004Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:50:32.809Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:50:42.113Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:52:11.969Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:52:19.754Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:53:49.897Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:53:59.250Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:58:44.539Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T08:58:52.914Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-18T09:17:57.759Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-18T09:17:57.773Z"}
+{"error":{"expiredAt":"2025-07-18T09:03:58.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T09:23:47.160Z"}
+{"error":{"expiredAt":"2025-07-18T09:03:58.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T09:23:49.346Z"}
+{"error":{"expiredAt":"2025-07-18T09:03:58.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-18T09:23:51.274Z"}
+{"isParent":false,"isSuperAdmin":false,"level":"info","message":"User logged in","role":"SCHOOL_ADMIN","schoolId":"d0932530-94c1-4cda-8d8b-2a0df1557f2f","timestamp":"2025-07-18T09:23:59.009Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T09:24:06.744Z"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T09:24:14.547Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T09:24:14.591Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-07-18T09:24:15.428Z"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T09:30:18.116Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"warn","message":"Insufficient permissions","path":"/","role":"SCHOOL_ADMIN","timestamp":"2025-07-18T09:31:20.048Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-18T09:33:06.967Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-18T09:33:06.989Z"}
+{"level":"info","message":"Teacher created","teacherId":"2bd21b1e-5cad-41d7-b944-f6f27091741d","timestamp":"2025-07-18T09:33:28.838Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T09:33:34.192Z","total":1,"userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9","userRole":"SCHOOL_ADMIN"}
+{"level":"info","message":"Teacher updated","teacherId":"2bd21b1e-5cad-41d7-b944-f6f27091741d","timestamp":"2025-07-18T09:35:38.361Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T09:35:44.212Z","total":1,"userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9","userRole":"SCHOOL_ADMIN"}
+{"level":"info","message":"Teacher updated","teacherId":"2bd21b1e-5cad-41d7-b944-f6f27091741d","timestamp":"2025-07-18T09:36:36.167Z","userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T09:36:41.797Z","total":1,"userId":"7f6eb532-50c2-4307-8b7a-1f4488276ed9","userRole":"SCHOOL_ADMIN"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-18T09:53:04.022Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-18T09:53:04.028Z"}
+{"error":{"expiredAt":"2025-07-18T09:38:57.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-18T09:53:16.569Z"}
+{"isParent":false,"isSuperAdmin":false,"level":"info","message":"User logged in","role":"TEACHER","schoolId":"d0932530-94c1-4cda-8d8b-2a0df1557f2f","timestamp":"2025-07-18T09:53:34.958Z","userId":"2bd21b1e-5cad-41d7-b944-f6f27091741d"}
+{"level":"info","message":"Teacher dashboard retrieved","timestamp":"2025-07-18T09:53:43.356Z","userId":"2bd21b1e-5cad-41d7-b944-f6f27091741d"}
+{"level":"info","message":"Teacher dashboard retrieved","timestamp":"2025-07-18T09:53:51.566Z","userId":"2bd21b1e-5cad-41d7-b944-f6f27091741d"}
+{"level":"info","message":"Teacher dashboard retrieved","timestamp":"2025-07-18T10:04:54.638Z","userId":"2bd21b1e-5cad-41d7-b944-f6f27091741d"}
+{"level":"info","message":"Teacher dashboard retrieved","timestamp":"2025-07-18T10:05:02.486Z","userId":"2bd21b1e-5cad-41d7-b944-f6f27091741d"}
+{"level":"info","message":"Teacher dashboard retrieved","timestamp":"2025-07-18T10:05:28.581Z","userId":"2bd21b1e-5cad-41d7-b944-f6f27091741d"}
+{"level":"info","message":"Teacher dashboard retrieved","timestamp":"2025-07-18T10:05:37.316Z","userId":"2bd21b1e-5cad-41d7-b944-f6f27091741d"}
+{"level":"info","message":"Teacher dashboard retrieved","timestamp":"2025-07-18T10:06:59.943Z","userId":"2bd21b1e-5cad-41d7-b944-f6f27091741d"}
+{"level":"info","message":"Teacher dashboard retrieved","timestamp":"2025-07-18T10:07:08.921Z","userId":"2bd21b1e-5cad-41d7-b944-f6f27091741d"}
+{"error":{"expiredAt":"2025-07-18T10:08:33.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-18T11:22:05.837Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-18T11:22:16.999Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T11:22:19.146Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T11:22:27.226Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T11:22:33.881Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T11:22:57.743Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T11:23:01.906Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"expiredAt":"2025-07-18T11:37:15.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:38:01.860Z"}
+{"error":{"expiredAt":"2025-07-18T11:37:15.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:38:02.291Z"}
+{"error":{"expiredAt":"2025-07-18T11:37:15.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:38:18.593Z"}
+{"error":{"expiredAt":"2025-07-18T11:37:15.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:38:18.617Z"}
+{"error":{"expiredAt":"2025-07-18T11:37:15.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:38:18.655Z"}
+{"error":{"expiredAt":"2025-07-18T11:37:15.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:38:18.694Z"}
+{"error":{"expiredAt":"2025-07-18T11:37:15.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:38:18.734Z"}
+{"error":{"expiredAt":"2025-07-18T11:37:15.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:38:18.811Z"}
+{"error":{"expiredAt":"2025-07-18T11:37:15.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:38:19.098Z"}
+{"error":{"expiredAt":"2025-07-18T11:37:15.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-18T11:38:19.688Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-18T11:38:27.135Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T11:38:28.815Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T11:38:36.723Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T11:38:43.880Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-18T11:41:53.727Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-18T11:41:56.048Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-18T11:41:57.657Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-18T11:41:59.268Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-18T11:42:00.844Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-18T11:42:02.444Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-18T11:42:04.403Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-18T11:44:26.375Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T11:44:29.459Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-18T11:44:31.018Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-18T11:44:32.553Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T11:44:36.179Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-18T11:44:37.739Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-18T11:45:05.112Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-18T11:45:06.593Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T11:45:11.333Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-18T11:45:12.860Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-18T11:45:14.322Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T11:45:17.992Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-18T11:52:58.981Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-18T11:53:00.492Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T11:53:03.936Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-18T11:53:05.578Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-18T11:53:07.099Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-18T11:53:10.759Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"expiredAt":"2025-07-18T11:53:25.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:56:58.418Z"}
+{"error":{"expiredAt":"2025-07-18T11:53:25.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T11:56:58.656Z"}
+{"error":{"expiredAt":"2025-07-18T11:53:25.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-18T12:45:36.736Z"}
+{"error":{"expiredAt":"2025-07-18T11:53:25.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-18T12:45:46.790Z"}
+{"error":{"clientVersion":"6.10.1","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"User"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to login","timestamp":"2025-07-18T12:45:51.742Z"}
+{"error":{"clientVersion":"6.10.1","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"User"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to login","timestamp":"2025-07-18T12:47:09.139Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-18T12:47:58.965Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-18T12:48:01.268Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T12:48:14.839Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-18T12:48:21.021Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"expiredAt":"2025-07-18T13:02:57.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-19T05:13:56.170Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-19T05:14:29.578Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T05:14:31.267Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T05:14:37.549Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T05:14:45.115Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"clientVersion":"6.10.1","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"School"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve schools","timestamp":"2025-07-19T05:14:59.253Z"}
+{"error":{"clientVersion":"6.10.1","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"School"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve schools","timestamp":"2025-07-19T05:14:59.399Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:15:30.091Z"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T05:16:07.470Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T05:16:13.313Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T05:16:14.820Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T05:16:16.331Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T05:16:26.612Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T05:16:28.239Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"gradeId":"f533cfb1-2960-4ff3-987e-b6d117d8be4f","level":"info","message":"Grade created","timestamp":"2025-07-19T05:16:41.169Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T05:16:42.634Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T05:16:51.369Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:16:54.352Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T05:16:55.740Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T05:16:57.516Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:17:00.450Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T05:17:01.845Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T05:22:41.595Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:22:43.780Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T05:22:45.273Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","level":"info","message":"Class created","timestamp":"2025-07-19T05:23:09.107Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T05:23:10.727Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T05:24:25.286Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:24:28.350Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:24:29.949Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T05:24:31.359Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:24:34.284Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:24:35.730Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"expiredAt":"2025-07-19T05:29:28.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:33:54.015Z"}
+{"error":{"expiredAt":"2025-07-19T05:29:28.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:33:54.036Z"}
+{"error":{"expiredAt":"2025-07-19T05:29:28.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:34:16.650Z"}
+{"error":{"expiredAt":"2025-07-19T05:29:28.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-19T05:34:25.600Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:34:25.822Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-19T05:34:32.188Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T05:34:33.763Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T05:34:39.526Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:34:42.607Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:34:44.350Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"School","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve super admin dashboard","timestamp":"2025-07-19T05:34:49.616Z"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:34:52.918Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:34:54.462Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Subject created","schoolId":"d0932530-94c1-4cda-8d8b-2a0df1557f2f","subjectId":"c5640861-73b6-4d0b-a77f-2bd1a5ffb1b9","timestamp":"2025-07-19T05:34:56.960Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:34:58.787Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:42:03.312Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:42:03.380Z"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:42:08.599Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"User logged out","timestamp":"2025-07-19T05:42:19.842Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:42:20.106Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-19T05:42:25.991Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T05:42:27.889Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T05:42:33.775Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:42:36.070Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:42:39.399Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"School","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve super admin dashboard","timestamp":"2025-07-19T05:42:43.798Z"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:42:45.965Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:42:48.960Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:42:55.159Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:42:55.179Z"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:42:58.767Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:43:15.458Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:43:15.479Z"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:43:18.933Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"User logged out","timestamp":"2025-07-19T05:43:39.520Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:43:39.722Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-19T05:43:51.287Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T05:43:52.903Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T05:43:59.167Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T05:44:05.156Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:44:06.962Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:44:10.170Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:44:12.049Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:44:20.979Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:45:26.845Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:45:26.865Z"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:45:30.862Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:46:07.562Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T05:46:07.579Z"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:46:11.157Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T05:46:57.470Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T05:47:03.418Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:47:05.279Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:47:09.377Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:47:11.187Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T05:47:14.099Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Teacher assigned to subject","subjectId":"c5640861-73b6-4d0b-a77f-2bd1a5ffb1b9","teacherId":"2bd21b1e-5cad-41d7-b944-f6f27091741d","timestamp":"2025-07-19T05:55:48.992Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Subjects retrieved","page":1,"timestamp":"2025-07-19T05:55:58.852Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-19T05:56:32.367Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T05:56:34.663Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T05:56:35.389Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-19T05:56:36.955Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T05:56:38.448Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T05:56:39.952Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-19T05:56:41.568Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"expiredAt":"2025-07-19T05:58:49.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:07:33.532Z"}
+{"error":{"expiredAt":"2025-07-19T05:58:49.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:07:33.632Z"}
+{"error":{"expiredAt":"2025-07-19T05:58:49.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:07:33.659Z"}
+{"error":{"expiredAt":"2025-07-19T05:58:49.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:07:33.684Z"}
+{"error":{"expiredAt":"2025-07-19T05:58:49.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:07:33.703Z"}
+{"error":{"expiredAt":"2025-07-19T05:58:49.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/super-admin","timestamp":"2025-07-19T06:08:02.407Z"}
+{"error":{"expiredAt":"2025-07-19T05:58:49.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/super-admin","timestamp":"2025-07-19T06:08:02.424Z"}
+{"error":{"expiredAt":"2025-07-19T05:58:49.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-19T06:08:03.456Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-19T06:08:12.655Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T06:08:14.272Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T06:08:20.496Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T06:08:27.419Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-19T06:08:42.199Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T06:08:44.516Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:08:46.553Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T06:08:48.728Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Parents retrieved","page":1,"timestamp":"2025-07-19T06:08:51.171Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Student","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve students","timestamp":"2025-07-19T06:08:52.473Z"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T06:08:54.595Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:08:57.097Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T06:08:59.230Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Parents retrieved","page":1,"timestamp":"2025-07-19T06:09:01.665Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:09:17.695Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:09:18.012Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:09:18.233Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:09:18.275Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:09:18.326Z"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T06:09:19.989Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:09:22.280Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T06:09:23.055Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Parents retrieved","page":1,"timestamp":"2025-07-19T06:09:24.511Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T06:09:30.818Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T06:09:37.555Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:09:39.305Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T06:09:40.742Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-19T06:09:42.409Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T06:09:43.988Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Parent","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve parents","timestamp":"2025-07-19T06:09:44.566Z"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:09:46.202Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T06:09:47.687Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-19T06:09:49.195Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T06:09:50.790Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Parents retrieved","page":1,"timestamp":"2025-07-19T06:09:52.221Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:12:18.950Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:12:18.989Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:12:19.030Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:12:19.114Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:12:19.213Z"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T06:12:21.221Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:12:22.730Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Grades retrieved","page":1,"timestamp":"2025-07-19T06:12:24.181Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Parents retrieved","page":1,"timestamp":"2025-07-19T06:12:25.663Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"errors":[{"code":"invalid_type","expected":"string","message":"Required","path":["parentId"],"received":"undefined"}],"level":"warn","message":"Invalid input for student creation","timestamp":"2025-07-19T06:14:21.984Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"errors":[{"code":"invalid_type","expected":"string","message":"Required","path":["parentId"],"received":"undefined"}],"level":"warn","message":"Invalid input for student creation","timestamp":"2025-07-19T06:17:28.219Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-19T06:18:16.648Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-19T06:18:16.697Z"}
+{"level":"info","message":"Parent user created during student creation","parentEmail":"parent@gmail.com","parentId":"f1b76e4f-f559-41d0-aba8-0337219539e8","timestamp":"2025-07-19T06:18:40.255Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Student created","newParentCreated":true,"parentId":"f1b76e4f-f559-41d0-aba8-0337219539e8","schoolId":"d0932530-94c1-4cda-8d8b-2a0df1557f2f","studentId":"fae7b5f5-02b3-4e86-a721-7e7f1b2f54b3","timestamp":"2025-07-19T06:18:42.791Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Students retrieved","page":1,"timestamp":"2025-07-19T06:18:46.204Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T06:19:48.238Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Teachers retrieved","page":1,"timestamp":"2025-07-19T06:19:51.762Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-19T06:35:06.028Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-19T06:35:06.092Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:35:16.669Z"}
+{"error":{"expiredAt":"2025-07-19T06:23:10.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:35:16.928Z"}
+{"error":{"expiredAt":"2025-07-19T06:23:10.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/super-admin","timestamp":"2025-07-19T06:35:31.294Z"}
+{"error":{"expiredAt":"2025-07-19T06:23:10.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/super-admin","timestamp":"2025-07-19T06:35:31.335Z"}
+{"error":{"expiredAt":"2025-07-19T06:23:10.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-19T06:35:33.821Z"}
+{"isParent":true,"isSuperAdmin":false,"level":"info","message":"User logged in","role":"PARENT","timestamp":"2025-07-19T06:35:45.293Z","userId":"f1b76e4f-f559-41d0-aba8-0337219539e8"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve parent dashboard","timestamp":"2025-07-19T06:35:53.057Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve parent dashboard","timestamp":"2025-07-19T06:36:01.010Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve parent dashboard","timestamp":"2025-07-19T06:36:08.906Z"}
+{"level":"info","message":"User logged out","timestamp":"2025-07-19T06:36:20.689Z","userId":"f1b76e4f-f559-41d0-aba8-0337219539e8"}
+{"level":"info","message":"User logged out","timestamp":"2025-07-19T06:36:21.400Z","userId":"f1b76e4f-f559-41d0-aba8-0337219539e8"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve parent dashboard","timestamp":"2025-07-19T06:36:24.191Z"}
+{"level":"info","message":"User logged out","timestamp":"2025-07-19T06:36:24.964Z","userId":"f1b76e4f-f559-41d0-aba8-0337219539e8"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-19T06:36:33.125Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T06:36:34.756Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T06:36:40.674Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T06:36:46.790Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Parents retrieved","page":1,"timestamp":"2025-07-19T06:36:49.976Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Parents retrieved","page":1,"timestamp":"2025-07-19T06:36:53.074Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:40:37.873Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:40:40.338Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:41:08.915Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:41:52.627Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-19T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T06:42:08.566Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-18T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T06:42:38.659Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-19T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T06:42:58.567Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-19T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T06:45:35.552Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"warn","message":"Insufficient permissions","path":"/bulk","role":"SUPER_ADMIN","timestamp":"2025-07-19T06:45:47.235Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-19T06:47:40.228Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-19T06:47:40.251Z"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:49:01.025Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-19T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T06:49:13.027Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-19T06:52:35.174Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-19T06:52:35.180Z"}
+{"error":{"expiredAt":"2025-07-19T06:51:31.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-07-19T06:52:57.792Z"}
+{"error":{"expiredAt":"2025-07-19T06:51:31.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-19T06:55:11.288Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-19T06:55:18.739Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T06:55:20.366Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T06:55:26.868Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T06:55:32.948Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:55:34.387Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:55:35.913Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-19T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T06:55:46.536Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:57:43.879Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-19T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T06:57:45.927Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-19T06:58:42.504Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-19T06:58:42.509Z"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T06:59:43.656Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-19T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T06:59:45.899Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-19T07:00:51.510Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-19T07:00:51.515Z"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T07:03:26.615Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T07:03:32.650Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-19T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T07:03:46.437Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"42804","message":"ERROR: argument of AND must be type boolean, not type text"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve attendance analytics","timestamp":"2025-07-19T07:03:47.816Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-19T07:08:41.716Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-19T07:08:41.728Z"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T07:08:54.680Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-19T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T07:09:00.314Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","dateRange":"2025-01-19 to 2025-07-19","level":"info","message":"Attendance analytics retrieved","timestamp":"2025-07-19T07:09:01.793Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"clientVersion":"6.10.1","code":"P2003","meta":{"constraint":"Attendance_recordedById_fkey","modelName":"Attendance"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to record bulk attendance","timestamp":"2025-07-19T07:09:25.093Z"}
+{"error":{"expiredAt":"2025-07-19T07:10:17.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/analytics","timestamp":"2025-07-19T07:12:16.712Z"}
+{"error":{"expiredAt":"2025-07-19T07:10:17.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/class/2dbc1ff5-971c-4417-909a-c0dd133e2d8b","timestamp":"2025-07-19T07:12:16.762Z"}
+{"error":{"expiredAt":"2025-07-19T07:10:17.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/bulk","timestamp":"2025-07-19T07:12:30.265Z"}
+{"error":{"expiredAt":"2025-07-19T07:10:17.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-19T07:12:42.861Z"}
+{"isParent":false,"isSuperAdmin":true,"level":"info","message":"User logged in","role":"SUPER_ADMIN","timestamp":"2025-07-19T07:12:48.763Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Schools retrieved","page":1,"timestamp":"2025-07-19T07:12:50.592Z","total":1,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T07:12:59.609Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","message":"Super admin dashboard retrieved","timestamp":"2025-07-19T07:13:05.651Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T07:13:09.682Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T07:13:11.335Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","dateRange":"2025-01-19 to 2025-07-19","level":"info","message":"Attendance analytics retrieved","timestamp":"2025-07-19T07:13:16.239Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"classId":"2dbc1ff5-971c-4417-909a-c0dd133e2d8b","date":"2025-07-19T00:00:00.000Z","level":"info","message":"Class attendance retrieved","studentCount":1,"timestamp":"2025-07-19T07:13:21.268Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"error":{"clientVersion":"6.10.1","code":"P2003","meta":{"constraint":"Attendance_recordedById_fkey","modelName":"Attendance"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to record bulk attendance","timestamp":"2025-07-19T07:13:28.709Z"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T07:24:49.116Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"filters":{"upcoming":false},"level":"info","limit":10,"message":"Events retrieved","page":1,"timestamp":"2025-07-19T07:24:49.868Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T07:24:51.380Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"filters":{"upcoming":false},"level":"info","limit":10,"message":"Events retrieved","page":1,"timestamp":"2025-07-19T07:24:52.997Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"filters":{"upcoming":true},"level":"info","limit":10,"message":"Events retrieved","page":1,"timestamp":"2025-07-19T07:25:16.326Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"filters":{"upcoming":false},"level":"info","limit":10,"message":"Events retrieved","page":1,"timestamp":"2025-07-19T07:25:17.852Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","limit":10,"message":"Classes retrieved","page":1,"timestamp":"2025-07-19T07:26:21.756Z","userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd"}
+{"filters":{"upcoming":false},"level":"info","limit":10,"message":"Events retrieved","page":1,"timestamp":"2025-07-19T07:26:23.355Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"filters":{"upcoming":false},"level":"info","limit":10,"message":"Events retrieved","page":1,"timestamp":"2025-07-19T07:27:18.133Z","total":0,"userId":"cd71cc51-d08c-4061-a366-05f9428ae7dd","userRole":"SUPER_ADMIN"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-21T08:32:39.282Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-21T08:32:39.288Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-21T08:45:36.349Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-21T08:45:36.353Z"}
+{"level":"info","message":"Server running on port 3000","timestamp":"2025-07-22T05:17:05.269Z"}
+{"level":"info","message":"Environment: development","timestamp":"2025-07-22T05:17:05.275Z"}

@@ -1,14 +1,29 @@
 import type { Response } from "express"
 import { z } from "zod"
-import { prisma, type AuthRequest, handleError, logger, getTenantFilter, getParentSchoolIds } from "../utils/setup"
+import {
+  prisma,
+  type AuthRequest,
+  handleError,
+  logger,
+  getTenantFilter,
+  getParentSchoolIds,
+  hashPassword,
+} from "../utils/setup"
 
 // Validation Schemas
 const createTeacherSchema = z.object({
-  userId: z.string().uuid("Invalid user ID"),
   schoolId: z.string().uuid("Invalid school ID"),
+  // Required fields for creating new user
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+  name: z.string().min(1, "Name is required"),
+  surname: z.string().min(1, "Surname is required"),
+  username: z.string().min(3, "Username must be at least 3 characters long"),
+
+  // Optional teacher-specific fields
   bloodType: z.string().optional(),
   sex: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
-  profileImageUrl: z.string().url().optional(), // Changed from imageUrl to profileImageUrl
+  profileImageUrl: z.string().url().optional(),
   birthday: z.string().datetime().optional(),
   bio: z.string().optional(),
   qualifications: z.string().optional(),
@@ -17,7 +32,7 @@ const createTeacherSchema = z.object({
 const updateTeacherSchema = z.object({
   bloodType: z.string().optional(),
   sex: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
-  profileImageUrl: z.string().url().optional(), // Changed from imageUrl to profileImageUrl
+  profileImageUrl: z.string().url().optional(),
   birthday: z.string().datetime().optional(),
   bio: z.string().optional(),
   qualifications: z.string().optional(),
@@ -83,6 +98,7 @@ export const getTeachers = async (req: AuthRequest, res: Response) => {
               email: true,
               name: true,
               surname: true,
+              username: true,
               profileImageUrl: true,
             },
           },
@@ -145,17 +161,48 @@ export const getTeacherById = async (req: AuthRequest, res: Response) => {
   try {
     const teacher = await prisma.teacher.findUnique({
       where: { id },
-      select: {
-        id: true,
-        user: { select: { email: true, name: true, surname: true, profileImageUrl: true } }, // Include profileImageUrl
-        schoolId: true,
-        qualifications: true,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            surname: true,
+            username: true,
+            profileImageUrl: true,
+          },
+        },
+        school: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        subjects: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        supervisedClasses: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        approval: {
+          select: {
+            status: true,
+          },
+        },
       },
     })
+
     if (!teacher) {
       logger.warn("Teacher not found", { userId: req.user?.id, teacherId: id })
       return res.status(404).json({ message: "Teacher not found" })
     }
+
     logger.info("Teacher retrieved", { userId: req.user?.id, teacherId: id })
     res.status(200).json({ message: "Teacher retrieved successfully", teacher })
   } catch (error) {
@@ -166,41 +213,72 @@ export const getTeacherById = async (req: AuthRequest, res: Response) => {
 export const createTeacher = async (req: AuthRequest, res: Response) => {
   try {
     const data = createTeacherSchema.parse(req.body)
+    const { email, password, name, surname, username, schoolId, profileImageUrl, ...teacherDetails } = data
 
-    // Verify user and school
-    const [user, school] = await Promise.all([
-      prisma.user.findUnique({ where: { id: data.userId } }),
-      prisma.school.findUnique({ where: { id: data.schoolId } }),
-    ])
-    if (!user) throw new Error("User not found")
-    if (user.role !== "TEACHER") throw new Error("User must have TEACHER role")
-    if (!school) throw new Error("School not found")
+    // Verify school exists
+    const school = await prisma.school.findUnique({ where: { id: schoolId } })
+    if (!school) {
+      throw new Error("School not found")
+    }
 
-    // Check if teacher record already exists
-    const existingTeacher = await prisma.teacher.findUnique({ where: { id: data.userId } })
-    if (existingTeacher) throw new Error("Teacher record already exists for this user")
-
-    // Create teacher and update user profileImageUrl in a transaction
+    // Create teacher and user in a transaction
     const teacher = await prisma.$transaction(async (tx) => {
-      const newTeacher = await tx.teacher.create({
+      // Check if user with this email already exists
+      const existingUserByEmail = await tx.user.findUnique({ where: { email } })
+      if (existingUserByEmail) {
+        throw new Error("User with this email already exists")
+      }
+
+      // Check if user with this username already exists
+      const existingUserByUsername = await tx.user.findUnique({ where: { username } })
+      if (existingUserByUsername) {
+        throw new Error("User with this username already exists")
+      }
+
+      // Create new user with TEACHER role
+      const hashedPassword = await hashPassword(password)
+      const newUser = await tx.user.create({
         data: {
-          id: data.userId,
-          schoolId: data.schoolId,
-          bloodType: data.bloodType,
-          sex: data.sex,
-          birthday: data.birthday ? new Date(data.birthday) : undefined,
-          bio: data.bio,
-          qualifications: data.qualifications,
+          email,
+          passwordHash: hashedPassword,
+          name,
+          surname,
+          username,
+          role: "TEACHER",
+          profileImageUrl: profileImageUrl || null,
         },
       })
 
-      // Update user's profileImageUrl if provided
-      if (data.profileImageUrl) {
-        await tx.user.update({
-          where: { id: data.userId },
-          data: { profileImageUrl: data.profileImageUrl },
-        })
-      }
+      // Create teacher record
+      const newTeacher = await tx.teacher.create({
+        data: {
+          id: newUser.id,
+          schoolId: schoolId,
+          bloodType: teacherDetails.bloodType,
+          sex: teacherDetails.sex,
+          birthday: teacherDetails.birthday ? new Date(teacherDetails.birthday) : undefined,
+          bio: teacherDetails.bio,
+          qualifications: teacherDetails.qualifications,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              surname: true,
+              username: true,
+              profileImageUrl: true,
+            },
+          },
+          school: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      })
 
       return newTeacher
     })
@@ -232,6 +310,24 @@ export const updateTeacher = async (req: AuthRequest, res: Response) => {
           bio: data.bio,
           qualifications: data.qualifications,
         },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              surname: true,
+              username: true,
+              profileImageUrl: true,
+            },
+          },
+          school: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       })
 
       // Update user's profileImageUrl if provided
@@ -259,7 +355,9 @@ export const updateTeacher = async (req: AuthRequest, res: Response) => {
 export const deleteTeacher = async (req: AuthRequest, res: Response) => {
   const { id } = req.params
   try {
+    // Delete teacher record (this will also handle cascading deletes based on schema)
     await prisma.teacher.delete({ where: { id } })
+
     logger.info("Teacher deleted", { userId: req.user?.id, teacherId: id })
     res.status(200).json({ message: "Teacher deleted successfully" })
   } catch (error) {
