@@ -21,17 +21,17 @@ router.get("/", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"]
 // Get assignment by ID
 router.get("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"]), getAssignmentById)
 
-// Create assignment (teachers only)
-router.post("/", authMiddleware(["TEACHER"]), createAssignment)
+// Create assignment (teachers, principals, and school admins)
+router.post("/", authMiddleware(["TEACHER", "PRINCIPAL", "SCHOOL_ADMIN"]), createAssignment)
 
-// Update assignment (teachers only)
-router.put("/:id", authMiddleware(["TEACHER"]), updateAssignment)
+// Update assignment (teachers, principals, and school admins)
+router.put("/:id", authMiddleware(["TEACHER", "PRINCIPAL", "SCHOOL_ADMIN"]), updateAssignment)
 
-// Delete assignment (teachers only)
-router.delete("/:id", authMiddleware(["TEACHER"]), deleteAssignment)
+// Delete assignment (teachers, principals, and school admins)
+router.delete("/:id", authMiddleware(["TEACHER", "PRINCIPAL", "SCHOOL_ADMIN"]), deleteAssignment)
 
-// Upload assignment files (teachers only)
-router.post("/:id/files", authMiddleware(["TEACHER"]), upload.array("files", 10), uploadAssignmentFiles)
+// Upload assignment files (teachers, principals, and school admins)
+router.post("/:id/files", authMiddleware(["TEACHER", "PRINCIPAL", "SCHOOL_ADMIN"]), upload.array("files", 10), uploadAssignmentFiles)
 
 // Submit assignment (parents only)
 router.post("/:id/submit", authMiddleware(["PARENT"]), upload.array("files", 5), submitAssignment)

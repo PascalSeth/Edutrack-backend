@@ -25,17 +25,17 @@ router.get("/upcoming", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "TEACHER", "
 // Get event by ID
 router.get("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"]), getEventById)
 
-// Create event (principals only)
-router.post("/", authMiddleware(["PRINCIPAL"]), createEvent)
+// Create event (principals and school admins)
+router.post("/", authMiddleware(["PRINCIPAL", "SCHOOL_ADMIN"]), createEvent)
 
-// Update event (principals only)
-router.put("/:id", authMiddleware(["PRINCIPAL"]), updateEvent)
+// Update event (principals and school admins)
+router.put("/:id", authMiddleware(["PRINCIPAL", "SCHOOL_ADMIN"]), updateEvent)
 
-// Delete event (principals only)
-router.delete("/:id", authMiddleware(["PRINCIPAL"]), deleteEvent)
+// Delete event (principals and school admins)
+router.delete("/:id", authMiddleware(["PRINCIPAL", "SCHOOL_ADMIN"]), deleteEvent)
 
 // Upload event images
-router.post("/:id/images", authMiddleware(["PRINCIPAL"]), upload.array("images", 10), uploadEventImages)
+router.post("/:id/images", authMiddleware(["PRINCIPAL", "SCHOOL_ADMIN"]), upload.array("images", 10), uploadEventImages)
 
 // RSVP to event
 router.post("/:id/rsvp", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"]), rsvpToEvent)

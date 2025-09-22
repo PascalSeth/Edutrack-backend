@@ -111,3 +111,175 @@
 {"error":{"expiredAt":"2025-07-19T07:10:17.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/bulk","timestamp":"2025-07-19T07:12:30.265Z"}
 {"error":{"expiredAt":"2025-07-19T07:10:17.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-07-19T07:12:42.861Z"}
 {"error":{"clientVersion":"6.10.1","code":"P2003","meta":{"constraint":"Attendance_recordedById_fkey","modelName":"Attendance"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to record bulk attendance","timestamp":"2025-07-19T07:13:28.709Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-09-15T04:22:00.840Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"22012","message":"ERROR: division by zero"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-09-15T04:22:08.452Z"}
+{"error":{"expiredAt":"2025-09-15T04:36:52.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T04:52:04.252Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T04:54:55.095Z"}
+{"error":{"expiredAt":"2025-09-15T04:36:52.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-15T04:55:03.949Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T04:56:02.051Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T04:59:46.092Z"}
+{"error":{"expiredAt":"2025-09-15T05:10:23.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T05:10:29.125Z"}
+{"error":{"expiredAt":"2025-09-15T05:10:23.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T05:10:29.227Z"}
+{"error":{"expiredAt":"2025-09-15T05:10:23.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T05:16:57.660Z"}
+{"error":{"expiredAt":"2025-09-15T05:10:23.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T05:18:17.503Z"}
+{"error":{"expiredAt":"2025-09-15T05:10:23.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-15T05:19:47.248Z"}
+{"error":{"expiredAt":"2025-09-15T05:35:14.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/0598f171-e71f-4f15-bd3d-33aca6e0a33c/teachers","timestamp":"2025-09-15T05:43:56.912Z"}
+{"error":{"expiredAt":"2025-09-15T05:35:14.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-15T05:44:48.817Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T05:44:54.592Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T05:44:55.914Z"}
+{"error":{"expiredAt":"2025-09-15T05:35:14.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T05:44:57.153Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T05:44:57.261Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T05:44:58.668Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T05:44:58.744Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T06:00:47.313Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T06:00:47.380Z"}
+{"error":{"expiredAt":"2025-09-15T06:00:19.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T06:00:47.512Z"}
+{"error":{"expiredAt":"2025-09-15T06:00:19.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-15T06:00:56.984Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T06:00:57.447Z"}
+{"error":{"expiredAt":"2025-09-15T06:16:02.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-15T06:16:14.595Z"}
+{"error":{"expiredAt":"2025-09-15T06:16:02.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-16T05:55:37.997Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:55:41.189Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:55:41.199Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:55:41.209Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:55:41.219Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:58:09.991Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:58:10.038Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:58:10.133Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:58:10.239Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:58:10.254Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:58:20.055Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:58:20.081Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:58:20.093Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T05:58:20.161Z"}
+{"error":{"expiredAt":"2025-09-16T06:13:23.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-16T10:37:13.313Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"Student.parentId","modelName":"Student"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to login","timestamp":"2025-09-16T10:37:56.628Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"Student.parentId","modelName":"Student"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve students","timestamp":"2025-09-16T10:42:26.256Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"Student.parentId","modelName":"Parent"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve parents","timestamp":"2025-09-16T10:42:29.139Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"Student.parentId","modelName":"Student"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve students","timestamp":"2025-09-16T10:42:32.691Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"Student.parentId","modelName":"Parent"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve parents","timestamp":"2025-09-16T10:42:35.021Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T10:44:40.987Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T10:44:41.082Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T10:44:41.131Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T10:44:41.149Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T10:44:41.170Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"Student.parentId","modelName":"Parent"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve parents","timestamp":"2025-09-16T10:44:44.603Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T10:49:52.915Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T10:49:53.087Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T10:49:53.134Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-16T10:49:53.187Z"}
+{"error":{},"level":"error","message":"Failed to upload school logo","timestamp":"2025-09-16T10:55:18.714Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"t0.parentId","modelName":"Parent"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-09-16T10:56:19.502Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"t0.parentId","modelName":"Parent"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-09-16T10:56:25.021Z"}
+{"error":{"expiredAt":"2025-09-16T11:11:12.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-17T06:05:33.357Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"t0.parentId","modelName":"Parent"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-09-17T06:05:49.689Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"t0.parentId","modelName":"Parent"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-09-17T06:05:56.498Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"42703","message":"column \"parentId\" does not exist"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-09-17T06:08:10.342Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2010","meta":{"code":"42703","message":"column \"parentId\" does not exist"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve school admin dashboard","timestamp":"2025-09-17T06:08:14.366Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"Student.parentId","modelName":"Student"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to login","timestamp":"2025-09-17T06:14:10.570Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2022","meta":{"column":"Student.parentId","modelName":"Student"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to login","timestamp":"2025-09-17T06:31:29.143Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:50:03.859Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:50:05.100Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:50:06.384Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:50:07.673Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:50:08.952Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:55:42.935Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:55:44.041Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:55:44.453Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:55:44.517Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:55:44.534Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:55:44.633Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:55:44.747Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:55:44.780Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:55:44.810Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:57:17.461Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:57:17.555Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:57:17.725Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:57:18.176Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T06:57:18.223Z"}
+{"error":{"expiredAt":"2025-09-17T06:50:03.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-17T07:35:01.463Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T07:35:08.075Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T07:35:08.254Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T07:35:08.329Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T07:35:08.357Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T07:44:19.251Z"}
+{"error":{"expiredAt":"2025-09-17T07:50:14.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T07:52:19.330Z"}
+{"error":{"expiredAt":"2025-09-17T07:50:14.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-17T07:52:36.710Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T08:00:21.140Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T08:01:33.505Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T08:02:12.660Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T08:02:28.228Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T08:05:02.887Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T08:08:25.585Z"}
+{"error":{"expiredAt":"2025-09-17T08:25:36.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T08:25:38.502Z"}
+{"error":{"expiredAt":"2025-09-17T08:25:36.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T08:25:38.596Z"}
+{"error":{"expiredAt":"2025-09-17T08:25:36.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T08:25:48.901Z"}
+{"error":{"expiredAt":"2025-09-17T08:25:36.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T08:25:48.937Z"}
+{"error":{"expiredAt":"2025-09-17T08:25:36.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-17T08:31:34.335Z"}
+{"error":{"expiredAt":"2025-09-17T09:01:44.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T09:09:55.638Z"}
+{"error":{"expiredAt":"2025-09-17T09:01:44.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/logout","timestamp":"2025-09-17T10:11:52.440Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T10:23:29.371Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T10:23:31.053Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T10:43:32.524Z"}
+{"error":{"expiredAt":"2025-09-17T10:46:29.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T10:46:58.636Z"}
+{"error":{"expiredAt":"2025-09-17T11:21:16.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T11:26:36.402Z"}
+{"error":{"expiredAt":"2025-09-17T11:21:16.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-17T11:26:36.656Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T05:34:58.674Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T05:34:58.775Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T05:34:58.822Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T05:34:58.866Z"}
+{"error":{"clientVersion":"6.10.1","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"School"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve schools","timestamp":"2025-09-18T06:04:57.871Z"}
+{"error":{"clientVersion":"6.10.1","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"Class"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve classes","timestamp":"2025-09-18T06:05:04.743Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Parent","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve parents","timestamp":"2025-09-18T06:05:08.777Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Grade","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve grades","timestamp":"2025-09-18T06:05:08.814Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Student","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve students","timestamp":"2025-09-18T06:05:08.929Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"School","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve schools","timestamp":"2025-09-18T06:05:08.996Z"}
+{"error":{"expiredAt":"2025-09-18T06:05:06.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:05:09.030Z"}
+{"error":{"expiredAt":"2025-09-18T06:05:06.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:05:09.153Z"}
+{"error":{"expiredAt":"2025-09-18T06:05:06.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:05:09.176Z"}
+{"error":{"clientVersion":"6.10.1","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"Class"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve classes","timestamp":"2025-09-18T06:05:13.852Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:06:23.521Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:06:23.527Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:06:23.607Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:06:23.665Z"}
+{"error":{"clientVersion":"6.10.1","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"User"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to login","timestamp":"2025-09-18T06:06:25.722Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:24:06.743Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"School","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve super admin dashboard","timestamp":"2025-09-18T06:26:45.350Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Student","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve students","timestamp":"2025-09-18T06:32:04.776Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Grade","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve grades","timestamp":"2025-09-18T06:32:14.850Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:37:51.093Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:37:51.393Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:37:51.509Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:34.960Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:41.734Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:41.799Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:41.886Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:41.980Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:42.006Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:44.330Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:45.339Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:46.379Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:48.316Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T06:39:50.404Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Grade","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve grades","timestamp":"2025-09-18T06:47:15.329Z"}
+{"error":{"expiredAt":"2025-09-18T07:16:06.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T08:26:28.179Z"}
+{"error":{"expiredAt":"2025-09-18T07:16:06.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T08:26:28.223Z"}
+{"error":{"expiredAt":"2025-09-18T07:16:06.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T08:26:31.743Z"}
+{"error":{"expiredAt":"2025-09-18T07:16:06.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T08:26:31.801Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T08:34:10.078Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-18T08:34:10.116Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Class","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve classes","timestamp":"2025-09-18T08:42:01.961Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Class","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve classes","timestamp":"2025-09-18T08:42:01.999Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Grade","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve grades","timestamp":"2025-09-18T08:42:02.067Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Grade","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve grades","timestamp":"2025-09-18T08:42:02.101Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Teacher","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve teachers","timestamp":"2025-09-18T08:42:12.416Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Class","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve classes","timestamp":"2025-09-18T08:44:02.973Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Student","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve students","timestamp":"2025-09-18T08:44:11.240Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Grade","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve grades","timestamp":"2025-09-18T08:44:13.273Z"}
+{"error":{"expiredAt":"2025-09-18T09:04:19.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-19T06:17:26.958Z"}
+{"error":{"expiredAt":"2025-09-18T09:04:19.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-09-19T06:17:27.147Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"School","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve super admin dashboard","timestamp":"2025-09-19T06:19:00.781Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"User","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve super admin dashboard","timestamp":"2025-09-19T06:19:29.700Z"}
+{"error":{"clientVersion":"6.10.1","code":"P1001","meta":{"database_host":"aws-0-eu-west-2.pooler.supabase.com","database_port":6543,"modelName":"School"},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve super admin dashboard","timestamp":"2025-09-19T06:19:34.821Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Event","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve events","timestamp":"2025-09-19T06:25:36.668Z"}
+{"error":{"expiredAt":"2025-09-19T06:48:37.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/super-admin","timestamp":"2025-09-22T18:01:19.316Z"}
+{"error":{"expiredAt":"2025-09-19T06:48:37.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/super-admin","timestamp":"2025-09-22T18:01:19.581Z"}

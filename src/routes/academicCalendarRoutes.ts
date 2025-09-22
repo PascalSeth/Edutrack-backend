@@ -17,27 +17,24 @@ import { authMiddleware } from "../utils/setup"
 
 const router = Router()
 
-// Apply authentication middleware to all routes
-router.use(authMiddleware)
-
 // Term routes
-router.get("/terms", getTerms)
-router.get("/terms/:id", getTermById)
-router.post("/terms", createTerm)
-router.put("/terms/:id", updateTerm)
-router.delete("/terms/:id", deleteTerm)
+router.get("/terms", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getTerms)
+router.get("/terms/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getTermById)
+router.post("/terms", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), createTerm)
+router.put("/terms/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), updateTerm)
+router.delete("/terms/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), deleteTerm)
 
 // Holiday routes
-router.get("/holidays", getHolidays)
-router.post("/holidays", createHoliday)
-router.put("/holidays/:id", updateHoliday)
-router.delete("/holidays/:id", deleteHoliday)
+router.get("/holidays", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getHolidays)
+router.post("/holidays", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), createHoliday)
+router.put("/holidays/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), updateHoliday)
+router.delete("/holidays/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), deleteHoliday)
 
 // Calendar item routes
-router.post("/calendar-items", createCalendarItem)
-router.get("/calendar/:academicCalendarId/items", getCalendarItems)
+router.post("/calendar-items", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), createCalendarItem)
+router.get("/calendar/:academicCalendarId/items", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getCalendarItems)
 
 // Academic calendar overview
-router.get("/calendar", getAcademicCalendar)
+router.get("/calendar", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getAcademicCalendar)
 
 export default router

@@ -248,7 +248,8 @@ verificationStatus VerificationStatus @default(PENDING)
 verifiedAt      DateTime?
 
 // Parent relationships - children can be in different schools
-children        Student[]
+children        Student[] // Legacy - to be removed after migration
+studentParents  StudentParent[]
 payments        Payment[]
 feedbacks       ParentFeedback[]
 
@@ -302,6 +303,33 @@ verifiedAt      DateTime?
 // NEW: Campus assignment
 campusId        String?
 campus          Campus?   @relation("StudentCampus", fields: [campusId], references: [id])
+
+// Parent relationships (many-to-many with relationship type)
+parents         StudentParent[]
+}
+
+// Student-Parent Relationship (many-to-many with relationship type)
+model StudentParent {
+id              String    @id @default(uuid())
+
+// Relationships
+studentId       String
+student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+parentId        String
+parent          Parent    @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+// Relationship type
+relationship    ParentRelationship
+
+// Verification status for this specific parent-student relationship
+verificationStatus VerificationStatus @default(PENDING)
+verifiedAt      DateTime?
+isPrimary       Boolean   @default(false) // Primary contact parent
+
+createdAt       DateTime  @default(now())
+updatedAt       DateTime  @updatedAt
+
+@@unique([studentId, parentId])
 }
 
 // ACADEMIC MANAGEMENT MODELS
@@ -1408,9 +1436,9 @@ updatedAt       DateTime  @updatedAt
 model MaterialCart {
 id              String    @id @default(uuid())
 
-// Parent relationship
-parentId        String
-parent          Parent    @relation(fields: [parentId], references: [id])
+// Parent relationship (legacy - keeping for backward compatibility)
+parentId        String?
+parent          Parent?    @relation(fields: [parentId], references: [id])
 
 // School relationship (cart is school-specific)
 schoolId        String
@@ -1945,6 +1973,13 @@ MOBILE_MONEY
 enum UserSex {
 MALE
 FEMALE
+OTHER
+}
+
+enum ParentRelationship {
+MOTHER
+FATHER
+GUARDIAN
 OTHER
 }
 

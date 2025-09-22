@@ -14,20 +14,17 @@ import { authMiddleware } from "../utils/setup"
 
 const router = Router()
 
-// Apply authentication middleware to all routes
-router.use(authMiddleware)
-
 // Exam routes
-router.get("/", getExams)
-router.get("/:id", getExamById)
-router.post("/", createExam)
-router.put("/:id", updateExam)
-router.delete("/:id", deleteExam)
+router.get("/", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getExams)
+router.get("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getExamById)
+router.post("/", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), createExam)
+router.put("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), updateExam)
+router.delete("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), deleteExam)
 
 // Exam session routes
-router.get("/:examId/sessions", getExamSessions)
-router.post("/sessions", createExamSession)
-router.put("/sessions/:id", updateExamSession)
-router.delete("/sessions/:id", deleteExamSession)
+router.get("/:examId/sessions", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getExamSessions)
+router.post("/sessions", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), createExamSession)
+router.put("/sessions/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), updateExamSession)
+router.delete("/sessions/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), deleteExamSession)
 
 export default router

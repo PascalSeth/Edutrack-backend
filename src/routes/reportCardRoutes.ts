@@ -15,25 +15,22 @@ import { authMiddleware } from "../utils/setup"
 
 const router = Router()
 
-// Apply authentication middleware to all routes
-router.use(authMiddleware)
-
 // Report card routes
-router.get("/", getReportCards)
-router.get("/:id", getReportCardById)
-router.post("/", createReportCard)
-router.put("/:id", updateReportCard)
-router.post("/:id/approve", approveReportCard)
-router.post("/:id/publish", publishReportCard)
+router.get("/", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getReportCards)
+router.get("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), getReportCardById)
+router.post("/", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), createReportCard)
+router.put("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), updateReportCard)
+router.post("/:id/approve", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), approveReportCard)
+router.post("/:id/publish", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), publishReportCard)
 
 // Bulk generation
-router.post("/generate", generateReportCards)
+router.post("/generate", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), generateReportCards)
 
 // Subject report routes
-router.post("/subject-reports", createSubjectReport)
-router.put("/subject-reports/:id", updateSubjectReport)
+router.post("/subject-reports", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), createSubjectReport)
+router.put("/subject-reports/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), updateSubjectReport)
 
 // Student-specific routes
-router.get("/student/:studentId", getStudentReportCards)
+router.get("/student/:studentId", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER", "PARENT"]), getStudentReportCards)
 
 export default router

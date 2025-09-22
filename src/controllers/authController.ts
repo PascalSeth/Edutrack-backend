@@ -80,7 +80,7 @@ const generateTokens = (user: JwtPayload) => {
       ...(user.tenantId ? { tenantId: user.tenantId } : {}),
     },
     process.env.JWT_SECRET!,
-    { expiresIn: "15m" },
+    { expiresIn: "30m" },
   )
 
   const refreshToken = jwt.sign(
@@ -372,7 +372,11 @@ export const login = async (req: AuthRequest, res: Response) => {
     let childrenSummary = null
     if (user.role === "PARENT") {
       const children = await prisma.student.findMany({
-        where: { parentId: user.id },
+        where: {
+          parents: {
+            some: { parentId: user.id }
+          }
+        },
         include: {
           school: { select: { id: true, name: true } },
         },
@@ -494,7 +498,7 @@ export const refreshToken = async (req: AuthRequest, res: Response) => {
     }
 
     const accessToken = jwt.sign(tokenPayload, process.env.JWT_SECRET!, {
-      expiresIn: "15m",
+      expiresIn: "30m",
     })
 
     // Update token last used

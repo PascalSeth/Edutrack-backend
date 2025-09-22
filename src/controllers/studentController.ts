@@ -1,6 +1,7 @@
 import type { Response } from "express"
 import { z } from "zod"
 import { prisma, type AuthRequest, handleError, logger, getTenantFilter } from "../utils/setup"
+import { sendParentWelcomeEmail, generatePassword } from "../utils/emailService"
 import bcrypt from "bcrypt"
 
 // Validation Schemas
@@ -19,31 +20,42 @@ const createStudentSchema = z
     classId: z.string().uuid("Invalid class ID").optional(),
     gradeId: z.string().uuid("Invalid grade ID").optional(),
 
-    // Parent details (optional - if not provided, parentId must be provided)
+    // Parent details (array for multiple parents with relationships)
     parentDetails: z
-      .object({
-        email: z.string().email("Invalid email"),
-        username: z.string().min(3, "Username must be at least 3 characters"),
-        password: z.string().min(8, "Password must be at least 8 characters"),
-        name: z.string().min(1, "Parent name is required"),
-        surname: z.string().min(1, "Parent surname is required"),
-        phone: z.string().optional(),
-        address: z.string().optional(),
-      })
+      .array(
+        z.object({
+          email: z.string().email("Invalid email"),
+          username: z.string().min(3, "Username must be at least 3 characters"),
+          name: z.string().min(1, "Parent name is required"),
+          surname: z.string().min(1, "Parent surname is required"),
+          phone: z.string().optional(),
+          address: z.string().optional(),
+          relationship: z.enum(["MOTHER", "FATHER", "GUARDIAN", "OTHER"]),
+          isPrimary: z.boolean().default(false),
+        })
+      )
       .optional(),
 
-    // Alternative: existing parent ID
-    parentId: z.string().uuid("Invalid parent ID").optional(),
+    // Alternative: existing parent relationships (array)
+    parentRelationships: z
+      .array(
+        z.object({
+          parentId: z.string().uuid("Invalid parent ID"),
+          relationship: z.enum(["MOTHER", "FATHER", "GUARDIAN", "OTHER"]),
+          isPrimary: z.boolean().default(false),
+        })
+      )
+      .optional(),
   })
   .refine(
     (data) => {
-      // Either parentDetails or parentId must be provided, but not both
-      const hasParentDetails = data.parentDetails !== undefined
-      const hasParentId = data.parentId !== undefined
-      return (hasParentDetails && !hasParentId) || (!hasParentDetails && hasParentId)
+      // Either parentDetails or parentRelationships must be provided, but not both
+      const hasParentDetails = data.parentDetails !== undefined && data.parentDetails.length > 0
+      const hasParentRelationships = data.parentRelationships !== undefined && data.parentRelationships.length > 0
+      return (hasParentDetails && !hasParentRelationships) || (!hasParentDetails && hasParentRelationships)
     },
     {
-      message: "Either parent details or existing parent ID must be provided, but not both",
+      message: "Either parent details or existing parent relationships must be provided, but not both",
       path: ["parentDetails"],
     },
   )
@@ -72,14 +84,24 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
 
     // Apply tenant filtering based on user role
     if (req.user?.role === "SUPER_ADMIN") {
-      // Super admin sees all students
-      where = {}
+      // Super admin sees all students, but can filter by schoolId if provided
+      const schoolId = req.query.schoolId as string;
+      if (schoolId) {
+        where.schoolId = schoolId;
+      }
     } else if (req.user?.role === "PARENT") {
       // Parents see only their own children
-      where = { parentId: req.user.id }
+      where = {
+        ...getTenantFilter(req.user),
+        OR: [
+          { parentId: req.user.id }, // Legacy relationship
+          // TODO: Add StudentParent relationship check once Prisma client is regenerated
+          // { parents: { some: { parentId: req.user.id } } }
+        ]
+      }
     } else if (req.user?.role === "TEACHER") {
       // Teachers see students in their classes or lessons
-      where = getTeacherStudentFilter(req.user.id, req.user?.schoolId)
+      where = { ...getTenantFilter(req.user), ...getTeacherStudentFilter(req.user.id, req.user?.schoolId) }
     } else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN") {
       // School admins and principals see students in their school
       where = getTenantFilter(req.user)
@@ -161,10 +183,19 @@ export const getStudentById = async (req: AuthRequest, res: Response) => {
 
     // Apply access control based on user role
     if (req.user?.role === "PARENT") {
-      where = { id, parentId: req.user.id }
+      where = {
+        id,
+        ...getTenantFilter(req.user),
+        OR: [
+          { parentId: req.user.id }, // Legacy relationship
+          // TODO: Add StudentParent relationship check once Prisma client is regenerated
+          // { parents: { some: { parentId: req.user.id } } }
+        ]
+      }
     } else if (req.user?.role === "TEACHER") {
       where = {
         id,
+        ...getTenantFilter(req.user),
         OR: [
           {
             class: { supervisorId: req.user.id },
@@ -363,89 +394,119 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
       })
     }
 
-    let parentId: string
+    let parentRelationships: Array<{
+      parentId: string;
+      relationship: string;
+      isPrimary: boolean;
+      generatedPassword?: string;
+      email: string;
+      name: string;
+      surname: string;
+    }> = []
 
     // Handle parent creation or validation
     if (data.parentDetails) {
-      // Create new parent user and parent record
-      const { parentDetails } = data
-
-      // Check if user already exists
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          OR: [{ email: parentDetails.email }, { username: parentDetails.username }],
-        },
-      })
-
-      if (existingUser) {
-        return res.status(409).json({
-          message: "A user with this email or username already exists",
-        })
-      }
-
-      // Hash password
-      const passwordHash = await bcrypt.hash(parentDetails.password, 12)
-
-      // Create parent user and parent record in transaction
-      const parentResult = await prisma.$transaction(async (tx) => {
-        // Create user
-        const newUser = await tx.user.create({
-          data: {
-            email: parentDetails.email,
-            username: parentDetails.username,
-            passwordHash,
-            name: parentDetails.name,
-            surname: parentDetails.surname,
-            role: "PARENT",
-            phone: parentDetails.phone,
-            address: parentDetails.address,
+      // Create new parent users and parent records
+      for (const parentDetail of data.parentDetails) {
+        // Check if user already exists
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            OR: [{ email: parentDetail.email }, { username: parentDetail.username }],
           },
         })
 
-        // Create parent record
-        const newParent = await tx.parent.create({
+        if (existingUser) {
+          return res.status(409).json({
+            message: `A user with this email or username already exists: ${parentDetail.email}`,
+          })
+        }
+
+        // Generate a secure password for the new parent
+        const generatedPassword = generatePassword(12)
+        const passwordHash = await bcrypt.hash(generatedPassword, 12)
+
+        // Create parent user and parent record in transaction
+        const parentResult = await prisma.$transaction(async (tx) => {
+          // Create user
+          const newUser = await tx.user.create({
+            data: {
+              email: parentDetail.email,
+              username: parentDetail.username,
+              passwordHash,
+              name: parentDetail.name,
+              surname: parentDetail.surname,
+              role: "PARENT",
+              phone: parentDetail.phone,
+              address: parentDetail.address,
+            },
+          })
+
+          // Create parent record
+          const newParent = await tx.parent.create({
+            data: {
+              id: newUser.id,
+              verificationStatus: "PENDING",
+            },
+          })
+
+          return { user: newUser, parent: newParent }
+        })
+
+        parentRelationships.push({
+          parentId: parentResult.parent.id,
+          relationship: parentDetail.relationship,
+          isPrimary: parentDetail.isPrimary,
+          generatedPassword,
+          email: parentDetail.email,
+          name: parentDetail.name,
+          surname: parentDetail.surname,
+        })
+
+        // Send welcome notification to new parent
+        await prisma.notification.create({
           data: {
-            id: newUser.id,
-            verificationStatus: "PENDING",
+            userId: parentResult.parent.id,
+            title: "Welcome to EduTrack!",
+            content: `Your parent account has been created. A student record for ${data.name} ${data.surname} has been created at ${school.name}.`,
+            type: "GENERAL",
           },
         })
 
-        return { user: newUser, parent: newParent }
-      })
-
-      parentId = parentResult.parent.id
-
-      // Send welcome notification to new parent
-      await prisma.notification.create({
-        data: {
-          userId: parentId,
-          title: "Welcome to EduTrack!",
-          content: `Your parent account has been created. A student record for ${data.name} ${data.surname} has been created at ${school.name}.`,
-          type: "GENERAL",
-        },
-      })
-
-      logger.info("Parent user created during student creation", {
-        userId: req.user?.id,
-        parentId: parentId,
-        parentEmail: parentDetails.email,
-      })
-    } else if (data.parentId) {
-      // Verify existing parent
-      const parent = await prisma.parent.findUnique({
-        where: { id: data.parentId },
-        include: { user: true },
-      })
-
-      if (!parent) {
-        return res.status(404).json({ message: "Parent not found" })
+        logger.info("Parent user created during student creation", {
+          userId: req.user?.id,
+          parentId: parentResult.parent.id,
+          parentEmail: parentDetail.email,
+        })
       }
+    } else if (data.parentRelationships) {
+      // Verify existing parents
+      for (const parentRel of data.parentRelationships) {
+        const parent = await prisma.parent.findUnique({
+          where: { id: parentRel.parentId },
+          include: { user: true },
+        })
 
-      parentId = data.parentId
+        if (!parent) {
+          return res.status(404).json({ message: `Parent not found: ${parentRel.parentId}` })
+        }
+
+        parentRelationships.push({
+          parentId: parentRel.parentId,
+          relationship: parentRel.relationship,
+          isPrimary: parentRel.isPrimary,
+          email: parent.user.email,
+          name: parent.user.name,
+          surname: parent.user.surname,
+        })
+      }
     } else {
       // This should not happen due to schema validation, but just in case
-      return res.status(400).json({ message: "Parent details or parent ID is required" })
+      return res.status(400).json({ message: "Parent details or parent relationships are required" })
     }
+
+    // Set primary parent for backward compatibility (first primary or first parent)
+    const primaryParent = parentRelationships.find(p => p.isPrimary) || parentRelationships[0]
+    const parentId = primaryParent.parentId
 
     // Create student record
     const student = await prisma.student.create({
@@ -459,7 +520,7 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
         sex: data.sex,
         birthday: data.birthday ? new Date(data.birthday) : undefined,
         schoolId: data.schoolId,
-        parentId: parentId,
+        parentId: parentId, // Keep for backward compatibility
         classId: data.classId,
         gradeId: data.gradeId,
         verificationStatus: "PENDING",
@@ -476,11 +537,47 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
       },
     })
 
-    // Notify parent about the new student record (if using existing parent)
-    if (data.parentId) {
+    // Send welcome emails to newly created parents
+    for (const parentRel of parentRelationships) {
+      if (parentRel.generatedPassword) {
+        // Send welcome email for newly created parents
+        const emailSent = await sendParentWelcomeEmail(
+          parentRel.email,
+          parentRel.name,
+          parentRel.surname,
+          data.name,
+          data.surname,
+          school.name,
+          parentRel.generatedPassword
+        );
+
+        if (!emailSent) {
+          logger.warn("Failed to send welcome email to parent", {
+            parentId: parentRel.parentId,
+            email: parentRel.email,
+            studentId: student.id
+          });
+        }
+      }
+    }
+
+    // TODO: Create StudentParent relationships once Prisma client is regenerated
+    // For now, store parent relationships in a comment for future implementation
+    logger.info("Student created with parent relationships", {
+      studentId: student.id,
+      parentRelationships: parentRelationships.map(p => ({
+        parentId: p.parentId,
+        relationship: p.relationship,
+        isPrimary: p.isPrimary,
+        emailSent: !!p.generatedPassword
+      }))
+    })
+
+    // Notify parents about the new student record
+    for (const parentRel of parentRelationships) {
       await prisma.notification.create({
         data: {
-          userId: parentId,
+          userId: parentRel.parentId,
           title: "Student Record Created",
           content: `A student record for ${data.name} ${data.surname} has been created at ${school.name}. Verification is pending.`,
           type: "GENERAL",
@@ -519,7 +616,15 @@ export const updateStudent = async (req: AuthRequest, res: Response) => {
 
     // Apply access control based on user role
     if (req.user?.role === "PARENT") {
-      where = { id, parentId: req.user.id }
+      where = {
+        id,
+        ...getTenantFilter(req.user),
+        OR: [
+          { parentId: req.user.id }, // Legacy relationship
+          // TODO: Add StudentParent relationship check once Prisma client is regenerated
+          // { parents: { some: { parentId: req.user.id } } }
+        ]
+      }
       // Parents can't update verification status
       if (data.verificationStatus) {
         return res.status(403).json({ message: "Parents cannot update verification status" })
@@ -530,6 +635,7 @@ export const updateStudent = async (req: AuthRequest, res: Response) => {
       // Teachers can only update students in their classes and can't change verification status
       where = {
         id,
+        ...getTenantFilter(req.user),
         OR: [
           {
             class: { supervisorId: req.user.id },
@@ -633,7 +739,7 @@ export const updateStudent = async (req: AuthRequest, res: Response) => {
       },
     })
 
-    // Notify parent if verification status changed
+    // Notify parents if verification status changed
     if (data.verificationStatus && data.verificationStatus !== existingStudent.verificationStatus) {
       const statusMessage =
         data.verificationStatus === "VERIFIED"
@@ -642,6 +748,8 @@ export const updateStudent = async (req: AuthRequest, res: Response) => {
             ? "rejected"
             : "pending review"
 
+      // TODO: Notify all parents once StudentParent relationships are implemented
+      // For now, notify the primary parent
       await prisma.notification.create({
         data: {
           userId: existingStudent.parentId,

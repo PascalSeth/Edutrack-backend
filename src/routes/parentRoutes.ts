@@ -7,6 +7,7 @@ import {
   deleteParent,
   getParentChildrenAcrossSchools,
   getParentsBySchool,
+  verifyParent,
 } from "../controllers/parentController"
 import { authMiddleware } from "../utils/setup"
 
@@ -33,6 +34,9 @@ router.post("/", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), c
 
 // Update parent
 router.put("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "PARENT"]), updateParent)
+
+// Verify parent
+router.put("/:id/verify", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), verifyParent)
 
 // Delete parent
 router.delete("/:id", authMiddleware(["SUPER_ADMIN"]), deleteParent)

@@ -148,7 +148,11 @@ export const getTenantFilter = (user: AuthRequest["user"]) => {
 // Get schools where parent has children (for parent multi-tenant filtering)
 export const getParentSchoolIds = async (parentId: string): Promise<string[]> => {
   const students = await prisma.student.findMany({
-    where: { parentId },
+    where: {
+      parents: {
+        some: { parentId }
+      }
+    },
     select: { schoolId: true },
     distinct: ["schoolId"],
   })
@@ -336,7 +340,16 @@ export const validateSchoolAccess = async (userId: string, schoolId: string, use
     case "TEACHER":
       return user.teacher?.schoolId === schoolId
     case "PARENT":
-      return user.parent?.children.some((child) => child.schoolId === schoolId) || false
+      // For parents, we need to check if they have children in the specified school
+      const parentChildren = await prisma.student.findMany({
+        where: {
+          parents: {
+            some: { parentId: userId }
+          },
+          schoolId: schoolId
+        }
+      })
+      return parentChildren.length > 0
     default:
       return false
   }
@@ -349,6 +362,7 @@ export const validateStudentAccess = async (userId: string, studentId: string, u
     where: { id: studentId },
     include: {
       school: true,
+      parents: true,
       class: {
         include: {
           supervisor: true,
@@ -364,7 +378,7 @@ export const validateStudentAccess = async (userId: string, studentId: string, u
 
   switch (userRole) {
     case "PARENT":
-      return student.parentId === userId
+      return student.parents?.some(parent => parent.parentId === userId) || false
     case "TEACHER":
       // Teacher can access if they supervise the class or teach lessons in the class
       return (

@@ -10,6 +10,7 @@ import userRoutes from "./routes/userRoutes"
 import schoolRoutes from "./routes/schoolRoutes"
 import studentRoutes from "./routes/studentRoutes"
 import teacherRoutes from "./routes/teacherRoutes"
+import principalRoutes from "./routes/principalRoutes"
 import parentRoutes from "./routes/parentRoutes"
 import classRoutes from "./routes/classRoutes"
 import subjectRoutes from "./routes/subjectRoutes"
@@ -55,6 +56,41 @@ app.use(limiter)
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true, limit: "10mb" }))
 
+// Request/Response logging middleware
+app.use((req, res, next) => {
+  const startTime = Date.now()
+
+  // Log incoming request
+  logger.info('Incoming Request', {
+    method: req.method,
+    url: req.url,
+    headers: req.headers,
+    body: req.body,
+    query: req.query,
+    params: req.params,
+    ip: req.ip,
+    userAgent: req.get('User-Agent')
+  })
+
+  // Override res.json to log response
+  const originalJson = res.json
+  res.json = function(body) {
+    const duration = Date.now() - startTime
+
+    logger.info('Outgoing Response', {
+      method: req.method,
+      url: req.url,
+      statusCode: res.statusCode,
+      duration: `${duration}ms`,
+      responseBody: body
+    })
+
+    return originalJson.call(this, body)
+  }
+
+  next()
+})
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -70,6 +106,7 @@ app.use("/api/users", userRoutes)
 app.use("/api/schools", schoolRoutes)
 app.use("/api/students", studentRoutes)
 app.use("/api/teachers", teacherRoutes)
+app.use("/api/principals", principalRoutes)
 app.use("/api/parents", parentRoutes)
 app.use("/api/classes", classRoutes)
 app.use("/api/subjects", subjectRoutes)

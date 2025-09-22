@@ -125,23 +125,25 @@ export const createSubject = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: "Access denied" })
     }
 
-    // Verify school exists and user has access
-    const school = await prisma.school.findFirst({
-      where: {
-        id: data.schoolId,
-        ...getTenantFilter(req.user),
-      },
-    })
+    // For non-SUPER_ADMIN users, use their assigned school and ignore the provided schoolId
+    let schoolId: string;
+    if (req.user && req.user.role !== "SUPER_ADMIN") {
+      schoolId = req.user.schoolId!;
+    } else {
+      schoolId = data.schoolId;
+    }
 
+    // Verify school exists
+    const school = await prisma.school.findUnique({ where: { id: schoolId } })
     if (!school) {
-      return res.status(404).json({ message: "School not found or access denied" })
+      return res.status(404).json({ message: "School not found" })
     }
 
     // Check if subject with same name already exists in school
     const existingSubject = await prisma.subject.findFirst({
       where: {
         name: data.name,
-        schoolId: data.schoolId,
+        schoolId: schoolId,
       },
     })
 
@@ -154,14 +156,15 @@ export const createSubject = async (req: AuthRequest, res: Response) => {
         name: data.name,
         code: data.code,
         description: data.description,
-        schoolId: data.schoolId,
+        schoolId: schoolId,
       },
     })
 
     logger.info("Subject created", {
       userId: req.user?.id,
+      userRole: req.user?.role,
       subjectId: subject.id,
-      schoolId: data.schoolId,
+      schoolId: schoolId,
     })
 
     res.status(201).json({

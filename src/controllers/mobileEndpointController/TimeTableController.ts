@@ -139,31 +139,39 @@ export const getTimetableForChild = async (req: Request, res: Response) => {
       orderBy: [{ day: "asc" }, { startTime: "asc" }],
     })
 
-    // 5. Format the results
-    const formattedTimetable = timetableSlots.map((slot) => {
-      const durationMinutes = calculateDuration(slot.startTime, slot.endTime)
+    // 5. Group by day and format the results
+    const timetableByDay: { [key: string]: any[] } = {}
 
-      return {
-        id: slot.id,
-        day: slot.day,
-        period: slot.period,
+    timetableSlots.forEach((slot) => {
+      if (!timetableByDay[slot.day]) {
+        timetableByDay[slot.day] = []
+      }
+
+      timetableByDay[slot.day].push({
         startTime: slot.startTime,
         endTime: slot.endTime,
-        durationMinutes: durationMinutes,
-        lessonName: slot.lesson?.name || "N/A",
-        subject: slot.lesson?.subject?.name || "N/A",
-        // Corrected: Access name and surname from the nested user object
-        teacher: slot.teacher?.user ? `${slot.teacher.user.name} ${slot.teacher.user.surname}` : "N/A",
-        room: slot.room?.name || "N/A",
-        isActive: slot.isActive,
-        notes: slot.notes,
-      }
+        subject: {
+          name: slot.lesson?.subject?.name || "N/A",
+          code: slot.lesson?.subject?.code || "N/A",
+        },
+        teacher: slot.teacher?.user ? {
+          name: slot.teacher.user.name,
+          surname: slot.teacher.user.surname,
+        } : { name: "N/A", surname: "" },
+        room: {
+          name: slot.room?.name || "N/A",
+        },
+      })
     })
 
+    const timetable = Object.keys(timetableByDay).map((day) => ({
+      day: day.toUpperCase(),
+      periods: timetableByDay[day],
+    }))
+
     res.status(200).json({
-      message: "Timetable fetched successfully",
-      timetableName: activeTimetable.name,
-      data: formattedTimetable,
+      message: "Timetable retrieved successfully",
+      timetable,
     })
   } catch (error: unknown) {
     console.error("Error fetching timetable:", error)

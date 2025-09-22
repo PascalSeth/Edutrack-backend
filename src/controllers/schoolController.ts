@@ -12,6 +12,7 @@ import {
 } from "../utils/setup"
 import { supabase } from "../config/supabase"
 import bcrypt from "bcrypt" // Re-import bcrypt for password hashing
+import { sendSchoolAdminWelcomeEmail, generatePassword } from "../utils/emailService"
 
 // Validation Schemas
 const registerSchoolSchema = z
@@ -40,15 +41,13 @@ const registerSchoolSchema = z
   })
   .refine(
     (data) => {
-      // Either adminUserId is provided, OR all new admin details are provided
+      // Either adminUserId is provided, OR all new admin details except password are provided (password will be generated)
       const hasAdminId = data.adminUserId !== undefined && data.adminUserId !== ""
       const hasNewAdminDetails =
         data.adminEmail !== undefined &&
         data.adminEmail !== "" &&
         data.adminUsername !== undefined &&
         data.adminUsername !== "" &&
-        data.adminPassword !== undefined &&
-        data.adminPassword !== "" &&
         data.adminName !== undefined &&
         data.adminName !== "" &&
         data.adminSurname !== undefined &&
@@ -58,8 +57,8 @@ const registerSchoolSchema = z
     },
     {
       message:
-        "Either 'adminUserId' must be provided, or all of 'adminEmail', 'adminUsername', 'adminPassword', 'adminName', and 'adminSurname' must be provided to create a new school admin.",
-      path: ["adminUserId", "adminEmail", "adminUsername", "adminPassword", "adminName", "adminSurname"],
+        "Either 'adminUserId' must be provided, or all of 'adminEmail', 'adminUsername', 'adminName', and 'adminSurname' must be provided to create a new school admin.",
+      path: ["adminUserId", "adminEmail", "adminUsername", "adminName", "adminSurname"],
     },
   )
 
@@ -285,13 +284,15 @@ export const registerSchool = async (req: AuthRequest, res: Response) => {
       } else {
         logger.info("Creating new admin user for the school.")
         // This check is technically redundant due to Zod's refine, but good for clarity/fallback
-        if (!data.adminEmail || !data.adminUsername || !data.adminPassword || !data.adminName || !data.adminSurname) {
+        if (!data.adminEmail || !data.adminUsername || !data.adminName || !data.adminSurname) {
           logger.error("Missing details for new school admin user, despite schema validation.")
           throw new Error("Missing details for new school admin user.")
         }
 
-        const passwordHash = await bcrypt.hash(data.adminPassword, 12)
-        logger.info("Password hashed successfully.")
+        // Generate a secure password for the new admin
+        const generatedPassword = generatePassword()
+        const passwordHash = await bcrypt.hash(generatedPassword, 12)
+        logger.info("Password generated and hashed successfully.")
 
         const newAdminUser = await tx.user.create({
           data: {
@@ -308,7 +309,7 @@ export const registerSchool = async (req: AuthRequest, res: Response) => {
         generatedAdminCredentials = {
           email: data.adminEmail,
           username: data.adminUsername,
-          password: data.adminPassword,
+          password: generatedPassword,
         }
 
         logger.info("New school admin user created and linked", {
@@ -335,6 +336,29 @@ export const registerSchool = async (req: AuthRequest, res: Response) => {
       schoolId: school.id,
       schoolName: school.name,
     })
+
+    // Send welcome email to new admin if credentials were generated
+    if (generatedAdminCredentials) {
+      try {
+        await sendSchoolAdminWelcomeEmail(
+          generatedAdminCredentials.email,
+          data.adminName!,
+          data.adminSurname!,
+          school.name,
+          generatedAdminCredentials.password
+        )
+        logger.info("Welcome email sent to new school admin", {
+          adminEmail: generatedAdminCredentials.email,
+          schoolName: school.name,
+        })
+      } catch (emailError) {
+        logger.error("Failed to send welcome email to school admin", {
+          adminEmail: generatedAdminCredentials.email,
+          error: emailError instanceof Error ? emailError.message : 'Unknown error',
+        })
+        // Don't fail the registration if email fails
+      }
+    }
 
     res.status(201).json({
       message: "School registered successfully. Awaiting verification.",
