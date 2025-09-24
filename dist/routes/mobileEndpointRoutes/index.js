@@ -19,9 +19,9 @@ router.use("/academic-calendar", academic_calendar_routes_1.default);
 // router.use("/academic-results", academicResultsRoutes)
 // router.use("/announcements", announcementsRoutes)
 router.use("/attendance-record", attendance_record_routes_1.default);
-router.use("/child-profile", child_profile_routes_1.default);
+router.use("/", child_profile_routes_1.default);
 // router.use("/fee-status", feeStatusRoutes)
-router.use("/home-screen", home_screen_routes_1.default);
+router.use("/", home_screen_routes_1.default);
 router.use("/onboarding", onboarding_routes_1.default);
 router.use("/time-table", time_table_routes_1.default);
 exports.default = router;

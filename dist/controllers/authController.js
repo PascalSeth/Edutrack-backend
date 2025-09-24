@@ -62,7 +62,7 @@ const generateTokens = (user) => {
         role: user.role,
         ...(user.schoolId ? { schoolId: user.schoolId } : {}),
         ...(user.tenantId ? { tenantId: user.tenantId } : {}),
-    }, process.env.JWT_SECRET, { expiresIn: "15m" });
+    }, process.env.JWT_SECRET, { expiresIn: "30m" });
     const refreshToken = jsonwebtoken_1.default.sign({
         id: user.id,
         role: user.role,
@@ -319,7 +319,11 @@ const login = async (req, res) => {
         let childrenSummary = null;
         if (user.role === "PARENT") {
             const children = await setup_1.prisma.student.findMany({
-                where: { parentId: user.id },
+                where: {
+                    parents: {
+                        some: { parentId: user.id }
+                    }
+                },
                 include: {
                     school: { select: { id: true, name: true } },
                 },
@@ -435,7 +439,7 @@ const refreshToken = async (req, res) => {
             };
         }
         const accessToken = jsonwebtoken_1.default.sign(tokenPayload, process.env.JWT_SECRET, {
-            expiresIn: "15m",
+            expiresIn: "30m",
         });
         // Update token last used
         await setup_1.prisma.deviceToken.update({

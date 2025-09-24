@@ -13,7 +13,7 @@ const paystackApi = axios.create({
 
 export interface PaymentInitializationData {
   email: string
-  amount: number // in kobo
+  amount: number // in pesewas for GHS
   reference?: string
   callback_url?: string
   metadata?: any
@@ -22,6 +22,7 @@ export interface PaymentInitializationData {
   subaccount?: string
   transaction_charge?: number
   bearer?: string
+  currency?: string
 }
 
 export interface SubaccountData {
@@ -57,7 +58,11 @@ export interface TransferData {
 // Initialize payment
 export const initializePayment = async (data: PaymentInitializationData) => {
   try {
-    const response = await paystackApi.post("/transaction/initialize", data)
+    const payload = {
+      ...data,
+      currency: data.currency || "GHS", // Default to GHS
+    }
+    const response = await paystackApi.post("/transaction/initialize", payload)
     return response.data.data
   } catch (error: any) {
     console.error("Paystack initialization error:", error.response?.data || error.message)
@@ -92,7 +97,7 @@ export const createTransferRecipient = async (data: TransferRecipientData) => {
   try {
     const response = await paystackApi.post("/transferrecipient", {
       ...data,
-      currency: data.currency || "NGN",
+      currency: data.currency || "GHS",
     })
     return response.data.data
   } catch (error: any) {
@@ -106,7 +111,7 @@ export const initiateTransfer = async (data: TransferData) => {
   try {
     const response = await paystackApi.post("/transfer", {
       ...data,
-      currency: data.currency || "NGN",
+      currency: data.currency || "GHS",
       source: "balance",
     })
     return response.data.data
@@ -157,5 +162,30 @@ export const getTransferDetails = async (transferId: string) => {
   } catch (error: any) {
     console.error("Transfer details error:", error.response?.data || error.message)
     throw new Error(error.response?.data?.message || "Failed to get transfer details")
+  }
+}
+
+// Calculate fee structure for transactions
+// Applies 2.95% fee structure: multiply by 1.0295 to account for Paystack's 1.9% fee
+// Original amount remains intact, we add the fee to ensure no losses
+export const calculateTransactionFees = (subtotal: number) => {
+  // Total amount = subtotal * 1.0295 (covers Paystack's 1.9% fee)
+  const totalAmount = subtotal * 1.0295
+
+  // Our processing fee = totalAmount - subtotal (approximately 2.9% of subtotal)
+  const processingFee = totalAmount - subtotal
+
+  // Paystack's fee on original amount (1.9%)
+  const paystackFee = subtotal * 0.019
+
+  // School receives the original purchase amount
+  const schoolAmount = subtotal
+
+  return {
+    subtotal,
+    totalAmount,
+    processingFee,
+    paystackFee,
+    schoolAmount,
   }
 }

@@ -101,7 +101,11 @@ exports.getTenantFilter = getTenantFilter;
 // Get schools where parent has children (for parent multi-tenant filtering)
 const getParentSchoolIds = async (parentId) => {
     const students = await exports.prisma.student.findMany({
-        where: { parentId },
+        where: {
+            parents: {
+                some: { parentId }
+            }
+        },
         select: { schoolId: true },
         distinct: ["schoolId"],
     });
@@ -234,9 +238,12 @@ const createNotification = async (userId, title, content, type, data) => {
     }
 };
 exports.createNotification = createNotification;
-// Revenue calculation helper
-const calculateTransactionFee = (amount, feePercentage = 0.025) => {
-    return Math.round(amount * feePercentage * 100) / 100; // Round to 2 decimal places
+// Revenue calculation helper - updated for 2.95% fee structure
+// Multiplies by 1.0295 to account for Paystack's 1.9% fee
+const calculateTransactionFee = (amount) => {
+    const totalAmount = amount * 1.0295;
+    const fee = totalAmount - amount;
+    return Math.round(fee * 100) / 100; // Round to 2 decimal places
 };
 exports.calculateTransactionFee = calculateTransactionFee;
 // Multi-tenant validation helpers
@@ -266,7 +273,16 @@ const validateSchoolAccess = async (userId, schoolId, userRole) => {
         case "TEACHER":
             return user.teacher?.schoolId === schoolId;
         case "PARENT":
-            return user.parent?.children.some((child) => child.schoolId === schoolId) || false;
+            // For parents, we need to check if they have children in the specified school
+            const parentChildren = await exports.prisma.student.findMany({
+                where: {
+                    parents: {
+                        some: { parentId: userId }
+                    },
+                    schoolId: schoolId
+                }
+            });
+            return parentChildren.length > 0;
         default:
             return false;
     }
@@ -279,6 +295,7 @@ const validateStudentAccess = async (userId, studentId, userRole) => {
         where: { id: studentId },
         include: {
             school: true,
+            parents: true,
             class: {
                 include: {
                     supervisor: true,
@@ -293,7 +310,7 @@ const validateStudentAccess = async (userId, studentId, userRole) => {
         return false;
     switch (userRole) {
         case "PARENT":
-            return student.parentId === userId;
+            return student.parents?.some(parent => parent.parentId === userId) || false;
         case "TEACHER":
             // Teacher can access if they supervise the class or teach lessons in the class
             return (student.class?.supervisorId === userId ||

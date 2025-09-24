@@ -14,6 +14,7 @@ const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const schoolRoutes_1 = __importDefault(require("./routes/schoolRoutes"));
 const studentRoutes_1 = __importDefault(require("./routes/studentRoutes"));
 const teacherRoutes_1 = __importDefault(require("./routes/teacherRoutes"));
+const principalRoutes_1 = __importDefault(require("./routes/principalRoutes"));
 const parentRoutes_1 = __importDefault(require("./routes/parentRoutes"));
 const classRoutes_1 = __importDefault(require("./routes/classRoutes"));
 const subjectRoutes_1 = __importDefault(require("./routes/subjectRoutes"));
@@ -34,6 +35,9 @@ const examRoutes_1 = __importDefault(require("./routes/examRoutes"));
 const roomRoutes_1 = __importDefault(require("./routes/roomRoutes"));
 const curriculumRoutes_1 = __importDefault(require("./routes/curriculumRoutes"));
 const academicCalendarRoutes_1 = __importDefault(require("./routes/academicCalendarRoutes"));
+const parentSubscriptionRoutes_1 = __importDefault(require("./routes/parentSubscriptionRoutes"));
+const feeBreakdownRoutes_1 = __importDefault(require("./routes/feeBreakdownRoutes"));
+const mobileEndpointRoutes_1 = __importDefault(require("./routes/mobileEndpointRoutes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 // Security middleware
@@ -52,6 +56,35 @@ app.use(limiter);
 // Body parsing middleware
 app.use(express_1.default.json({ limit: "10mb" }));
 app.use(express_1.default.urlencoded({ extended: true, limit: "10mb" }));
+// Request/Response logging middleware
+app.use((req, res, next) => {
+    const startTime = Date.now();
+    // Log incoming request
+    setup_1.logger.info('Incoming Request', {
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        body: req.body,
+        query: req.query,
+        params: req.params,
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+    });
+    // Override res.json to log response
+    const originalJson = res.json;
+    res.json = function (body) {
+        const duration = Date.now() - startTime;
+        setup_1.logger.info('Outgoing Response', {
+            method: req.method,
+            url: req.url,
+            statusCode: res.statusCode,
+            duration: `${duration}ms`,
+            responseBody: body
+        });
+        return originalJson.call(this, body);
+    };
+    next();
+});
 // Health check endpoint
 app.get("/health", (req, res) => {
     res.status(200).json({
@@ -66,6 +99,7 @@ app.use("/api/users", userRoutes_1.default);
 app.use("/api/schools", schoolRoutes_1.default);
 app.use("/api/students", studentRoutes_1.default);
 app.use("/api/teachers", teacherRoutes_1.default);
+app.use("/api/principals", principalRoutes_1.default);
 app.use("/api/parents", parentRoutes_1.default);
 app.use("/api/classes", classRoutes_1.default);
 app.use("/api/subjects", subjectRoutes_1.default);
@@ -86,6 +120,9 @@ app.use("/api/exams", examRoutes_1.default);
 app.use("/api/rooms", roomRoutes_1.default);
 app.use("/api/curriculum", curriculumRoutes_1.default);
 app.use("/api/academic-calendar", academicCalendarRoutes_1.default);
+app.use("/api/parents/subscription", parentSubscriptionRoutes_1.default);
+app.use("/api/fee-breakdown", feeBreakdownRoutes_1.default);
+app.use("/mobile/parent", mobileEndpointRoutes_1.default);
 // 404 handler
 app.use("*", (req, res) => {
     res.status(404).json({ message: "Route not found" });

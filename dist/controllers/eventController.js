@@ -34,8 +34,11 @@ const getEvents = async (req, res) => {
         let where = {};
         // Apply tenant filtering based on user role
         if (req.user?.role === "SUPER_ADMIN") {
-            // Super admin sees all events
-            where = {};
+            // Super admin sees all events, but can filter by schoolId if provided
+            const schoolId = req.query.schoolId;
+            if (schoolId) {
+                where.schoolId = schoolId;
+            }
         }
         else if (req.user?.role === "PRINCIPAL" || req.user?.role === "SCHOOL_ADMIN" || req.user?.role === "TEACHER") {
             // School staff see events in their school

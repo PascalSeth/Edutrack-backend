@@ -100,14 +100,90 @@ const getHomeScreenData = async (req, res) => {
                 },
             });
             const percentageCompleted = totalAssignments > 0 ? ((submittedAssignments / totalAssignments) * 100).toFixed(2) : "0.00";
-            // --- Fee Information (Placeholder) ---
-            // You would integrate with your fee management logic here.
-            // For now, providing a placeholder.
-            const feeStatus = {
-                status: "Up-to-date", // Example status
-                outstandingAmount: 0, // Example amount
-                lastPaymentDate: new Date().toISOString(), // Example date
+            // --- Fee Information ---
+            let feeStatus = {
+                status: "Up-to-date",
+                outstandingAmount: 0,
+                lastPaymentDate: null,
             };
+            try {
+                // Get current academic year for the child's school
+                const currentAcademicYear = await setup_1.prisma.academicYear.findFirst({
+                    where: {
+                        schoolId: child.school?.id,
+                        isActive: true
+                    }
+                });
+                if (currentAcademicYear) {
+                    // Get fee structures for this academic year and school
+                    const feeStructures = await setup_1.prisma.feeStructure.findMany({
+                        where: {
+                            schoolId: child.school?.id,
+                            academicYearId: currentAcademicYear.id
+                        },
+                        include: {
+                            feeBreakdownItems: {
+                                include: {
+                                    studentOverrides: {
+                                        where: { studentId: child.id }
+                                    }
+                                }
+                            },
+                            payments: {
+                                where: {
+                                    parentId: req.user.id,
+                                    status: "COMPLETED"
+                                },
+                                orderBy: { paymentDate: 'desc' },
+                                take: 1
+                            }
+                        }
+                    });
+                    if (feeStructures.length > 0) {
+                        // Calculate total outstanding amount for this student
+                        let totalOutstanding = 0;
+                        let lastPaymentDate = null;
+                        for (const feeStructure of feeStructures) {
+                            for (const item of feeStructure.feeBreakdownItems) {
+                                const override = item.studentOverrides[0];
+                                const amount = override?.isExempt ? 0 :
+                                    (override?.overrideAmount ? Number(override.overrideAmount) : Number(item.amount));
+                                // For recurring items, check if paid for current period
+                                if (item.isRecurring && item.frequency) {
+                                    // Simplified: assume monthly items need payment if no recent payment
+                                    const recentPayment = feeStructure.payments[0];
+                                    if (!recentPayment || new Date(recentPayment.paymentDate).getMonth() !== new Date().getMonth()) {
+                                        totalOutstanding += amount;
+                                    }
+                                }
+                                else {
+                                    // One-time fees - check if paid
+                                    const hasPayment = feeStructure.payments.some(p => p.feeStructureId === feeStructure.id);
+                                    if (!hasPayment) {
+                                        totalOutstanding += amount;
+                                    }
+                                }
+                            }
+                            // Track last payment date
+                            if (feeStructure.payments[0]?.paymentDate) {
+                                const paymentDate = new Date(feeStructure.payments[0].paymentDate);
+                                if (!lastPaymentDate || paymentDate > lastPaymentDate) {
+                                    lastPaymentDate = paymentDate;
+                                }
+                            }
+                        }
+                        feeStatus = {
+                            status: totalOutstanding > 0 ? "Outstanding" : "Up-to-date",
+                            outstandingAmount: totalOutstanding,
+                            lastPaymentDate: lastPaymentDate?.toISOString() || null
+                        };
+                    }
+                }
+            }
+            catch (feeError) {
+                setup_1.logger.warn("Error calculating fee status", { studentId: child.id, error: feeError });
+                // Keep default fee status on error
+            }
             return {
                 id: child.id,
                 name: child.name,

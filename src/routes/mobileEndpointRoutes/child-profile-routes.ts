@@ -3,6 +3,6 @@ import { getParentChildren } from "../../controllers/mobileEndpointController/ch
 
 const router = express.Router()
 
-router.get("/", getParentChildren)
+router.get("/children", getParentChildren)
 
 export default router

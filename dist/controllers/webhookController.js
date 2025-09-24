@@ -84,6 +84,12 @@ exports.handlePaystackWebhook = handlePaystackWebhook;
 // Handle successful charge
 const handleChargeSuccess = async (data) => {
     try {
+        // Check if it's a subscription payment
+        if (data.metadata?.type === "subscription") {
+            await handleSubscriptionPayment(data);
+            return;
+        }
+        // Handle material order payment
         const payment = await prisma.materialPayment.findUnique({
             where: { paystackRef: data.reference },
             include: {
@@ -139,6 +145,74 @@ const handleChargeSuccess = async (data) => {
     }
     catch (error) {
         console.error("Error handling charge success:", error);
+    }
+};
+// Handle subscription payment success
+const handleSubscriptionPayment = async (data) => {
+    try {
+        const subscriptionId = data.metadata?.subscriptionId;
+        if (!subscriptionId) {
+            console.log(`No subscription ID in metadata for reference: ${data.reference}`);
+            return;
+        }
+        const subscription = await prisma.parentSubscription.findUnique({
+            where: { id: subscriptionId },
+            include: {
+                parent: {
+                    include: {
+                        user: true,
+                    },
+                },
+            },
+        });
+        if (!subscription) {
+            console.log(`Subscription not found: ${subscriptionId}`);
+            return;
+        }
+        if (subscription.status === "ACTIVE") {
+            console.log(`Subscription already active: ${subscriptionId}`);
+            return;
+        }
+        // Find a school associated with the parent for the payment record
+        const parentSchool = await prisma.student.findFirst({
+            where: { parentId: subscription.parentId },
+            select: { schoolId: true },
+        });
+        // Create payment record
+        const payment = await prisma.payment.create({
+            data: {
+                amount: subscription.amount,
+                currency: subscription.currency,
+                status: "COMPLETED",
+                paymentMethod: "PAYSTACK",
+                transactionId: data.reference,
+                paymentDate: new Date(),
+                parentId: subscription.parentId,
+                schoolId: parentSchool?.schoolId || "system-school", // Use parent's school or system default
+                feeStructureId: null, // No fee structure for subscriptions
+            },
+        });
+        // Update subscription status
+        await prisma.parentSubscription.update({
+            where: { id: subscriptionId },
+            data: {
+                status: "ACTIVE",
+                paymentId: payment.id,
+            },
+        });
+        // Send notification to parent
+        await prisma.notification.create({
+            data: {
+                title: "Subscription Activated",
+                content: `Your ${subscription.plan.toLowerCase()} subscription has been activated successfully.`,
+                type: "PAYMENT",
+                userId: subscription.parent.user.id,
+            },
+        });
+        console.log(`Subscription payment processed successfully: ${data.reference}`);
+    }
+    catch (error) {
+        console.error("Error handling subscription payment:", error);
     }
 };
 // Handle successful transfer

@@ -31,6 +31,9 @@ import examRoutes from "./routes/examRoutes"
 import roomRoutes from "./routes/roomRoutes"
 import curriculumRoutes from "./routes/curriculumRoutes"
 import academicCalendarRoutes from "./routes/academicCalendarRoutes"
+import parentSubscriptionRoutes from "./routes/parentSubscriptionRoutes"
+import feeBreakdownRoutes from "./routes/feeBreakdownRoutes"
+import mobileEndpointRoutes from "./routes/mobileEndpointRoutes"
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -127,6 +130,9 @@ app.use("/api/exams", examRoutes)
 app.use("/api/rooms", roomRoutes)
 app.use("/api/curriculum", curriculumRoutes)
 app.use("/api/academic-calendar", academicCalendarRoutes)
+app.use("/api/parents/subscription", parentSubscriptionRoutes)
+app.use("/api/fee-breakdown", feeBreakdownRoutes)
+app.use("/mobile/parent", mobileEndpointRoutes)
 
 // 404 handler
 app.use("*", (req, res) => {

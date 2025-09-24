@@ -8,6 +8,7 @@ const zod_1 = require("zod");
 const setup_1 = require("../utils/setup");
 const supabase_1 = require("../config/supabase");
 const bcrypt_1 = __importDefault(require("bcrypt")); // Re-import bcrypt for password hashing
+const emailService_1 = require("../utils/emailService");
 // Validation Schemas
 const registerSchoolSchema = zod_1.z
     .object({
@@ -34,22 +35,20 @@ const registerSchoolSchema = zod_1.z
     adminSurname: zod_1.z.string().min(1, "Admin surname is required").optional(),
 })
     .refine((data) => {
-    // Either adminUserId is provided, OR all new admin details are provided
+    // Either adminUserId is provided, OR all new admin details except password are provided (password will be generated)
     const hasAdminId = data.adminUserId !== undefined && data.adminUserId !== "";
     const hasNewAdminDetails = data.adminEmail !== undefined &&
         data.adminEmail !== "" &&
         data.adminUsername !== undefined &&
         data.adminUsername !== "" &&
-        data.adminPassword !== undefined &&
-        data.adminPassword !== "" &&
         data.adminName !== undefined &&
         data.adminName !== "" &&
         data.adminSurname !== undefined &&
         data.adminSurname !== "";
     return hasAdminId || hasNewAdminDetails;
 }, {
-    message: "Either 'adminUserId' must be provided, or all of 'adminEmail', 'adminUsername', 'adminPassword', 'adminName', and 'adminSurname' must be provided to create a new school admin.",
-    path: ["adminUserId", "adminEmail", "adminUsername", "adminPassword", "adminName", "adminSurname"],
+    message: "Either 'adminUserId' must be provided, or all of 'adminEmail', 'adminUsername', 'adminName', and 'adminSurname' must be provided to create a new school admin.",
+    path: ["adminUserId", "adminEmail", "adminUsername", "adminName", "adminSurname"],
 });
 const updateSchoolSchema = zod_1.z.object({
     // Define fields that can be updated here
@@ -259,12 +258,14 @@ const registerSchool = async (req, res) => {
             else {
                 setup_1.logger.info("Creating new admin user for the school.");
                 // This check is technically redundant due to Zod's refine, but good for clarity/fallback
-                if (!data.adminEmail || !data.adminUsername || !data.adminPassword || !data.adminName || !data.adminSurname) {
+                if (!data.adminEmail || !data.adminUsername || !data.adminName || !data.adminSurname) {
                     setup_1.logger.error("Missing details for new school admin user, despite schema validation.");
                     throw new Error("Missing details for new school admin user.");
                 }
-                const passwordHash = await bcrypt_1.default.hash(data.adminPassword, 12);
-                setup_1.logger.info("Password hashed successfully.");
+                // Generate a secure password for the new admin
+                const generatedPassword = (0, emailService_1.generatePassword)();
+                const passwordHash = await bcrypt_1.default.hash(generatedPassword, 12);
+                setup_1.logger.info("Password generated and hashed successfully.");
                 const newAdminUser = await tx.user.create({
                     data: {
                         email: data.adminEmail,
@@ -280,7 +281,7 @@ const registerSchool = async (req, res) => {
                 generatedAdminCredentials = {
                     email: data.adminEmail,
                     username: data.adminUsername,
-                    password: data.adminPassword,
+                    password: generatedPassword,
                 };
                 setup_1.logger.info("New school admin user created and linked", {
                     adminUserId: newAdminUser.id,
@@ -303,6 +304,23 @@ const registerSchool = async (req, res) => {
             schoolId: school.id,
             schoolName: school.name,
         });
+        // Send welcome email to new admin if credentials were generated
+        if (generatedAdminCredentials) {
+            try {
+                await (0, emailService_1.sendSchoolAdminWelcomeEmail)(generatedAdminCredentials.email, data.adminName, data.adminSurname, school.name, generatedAdminCredentials.password);
+                setup_1.logger.info("Welcome email sent to new school admin", {
+                    adminEmail: generatedAdminCredentials.email,
+                    schoolName: school.name,
+                });
+            }
+            catch (emailError) {
+                setup_1.logger.error("Failed to send welcome email to school admin", {
+                    adminEmail: generatedAdminCredentials.email,
+                    error: emailError instanceof Error ? emailError.message : 'Unknown error',
+                });
+                // Don't fail the registration if email fails
+            }
+        }
         res.status(201).json({
             message: "School registered successfully. Awaiting verification.",
             school: {

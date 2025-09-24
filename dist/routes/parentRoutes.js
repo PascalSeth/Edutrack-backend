@@ -16,6 +16,8 @@ router.get("/:id/children", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIP
 router.post("/", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), parentController_1.createParent);
 // Update parent
 router.put("/:id", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "PARENT"]), parentController_1.updateParent);
+// Verify parent
+router.put("/:id/verify", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), parentController_1.verifyParent);
 // Delete parent
 router.delete("/:id", (0, setup_1.authMiddleware)(["SUPER_ADMIN"]), parentController_1.deleteParent);
 exports.default = router;

@@ -54,6 +54,7 @@ const createCalendarItemSchema = z.object({
   ]),
   isAllDay: z.boolean().default(false),
   academicCalendarId: z.string().uuid("Invalid academic calendar ID"),
+  termId: z.string().uuid("Invalid term ID").optional(),
 })
 
 // Term Management
@@ -564,6 +565,20 @@ export const createCalendarItem = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: "Academic calendar not found or access denied" })
     }
 
+    // If termId is provided, verify it exists and belongs to the same school
+    if (data.termId) {
+      const term = await prisma.term.findFirst({
+        where: {
+          id: data.termId,
+          schoolId: academicCalendar.schoolId,
+        },
+      })
+
+      if (!term) {
+        return res.status(404).json({ message: "Term not found or does not belong to the same school" })
+      }
+    }
+
     // Validate dates
     const startDate = new Date(data.startDate)
     const endDate = new Date(data.endDate)
@@ -581,6 +596,7 @@ export const createCalendarItem = async (req: AuthRequest, res: Response) => {
         itemType: data.itemType,
         isAllDay: data.isAllDay,
         academicCalendarId: data.academicCalendarId,
+        termId: data.termId,
       },
     })
 
@@ -588,6 +604,7 @@ export const createCalendarItem = async (req: AuthRequest, res: Response) => {
       userId: req.user?.id,
       calendarItemId: calendarItem.id,
       academicCalendarId: data.academicCalendarId,
+      termId: data.termId,
     })
 
     res.status(201).json({
@@ -645,6 +662,9 @@ export const getCalendarItems = async (req: AuthRequest, res: Response) => {
 
     const calendarItems = await prisma.calendarItem.findMany({
       where,
+      include: {
+        term: { select: { id: true, name: true, startDate: true, endDate: true } },
+      },
       orderBy: { startDate: "asc" },
     })
 
@@ -769,6 +789,29 @@ export const getAcademicCalendar = async (req: AuthRequest, res: Response) => {
       orderBy: { startTime: "asc" },
     })
 
+    // Get calendar items within the date range
+    const calendarItems = await prisma.calendarItem.findMany({
+      where: {
+        ...filter,
+        OR: [
+          {
+            startDate: { gte: start, lte: end },
+          },
+          {
+            endDate: { gte: start, lte: end },
+          },
+          {
+            startDate: { lte: start },
+            endDate: { gte: end },
+          },
+        ],
+      },
+      include: {
+        term: { select: { id: true, name: true } },
+      },
+      orderBy: { startDate: "asc" },
+    })
+
     logger.info("Academic calendar retrieved", { userId: req.user?.id, startDate, endDate })
     res.status(200).json({
       message: "Academic calendar retrieved successfully",
@@ -778,6 +821,7 @@ export const getAcademicCalendar = async (req: AuthRequest, res: Response) => {
         holidays,
         exams,
         events,
+        calendarItems,
       },
     })
   } catch (error) {

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express"
 import { PrismaClient } from "@prisma/client"
-import { initializePayment, verifyPayment, initiateTransfer } from "../utils/paystack"
+import { initializePayment, verifyPayment, initiateTransfer, calculateTransactionFees } from "../utils/paystack"
 import { generateReceiptPDF } from "../utils/receiptGenerator"
 
 const prisma = new PrismaClient()
@@ -40,10 +40,9 @@ export const createOrderFromCart = async (req: Request, res: Response) => {
       return sum + item.material.price.toNumber() * item.quantity
     }, 0)
 
-    const processingFee = subtotal * 0.029 // 2.9%
-    const paystackFee = (subtotal + processingFee) * 0.015 // Approximate Paystack fee
-    const totalAmount = subtotal + processingFee
-    const schoolAmount = subtotal
+    // Apply 2.95% fee structure using utility function
+    const feeBreakdown = calculateTransactionFees(subtotal)
+    const { totalAmount, processingFee, paystackFee, schoolAmount } = feeBreakdown
 
     // Generate order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`

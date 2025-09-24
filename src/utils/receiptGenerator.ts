@@ -77,8 +77,8 @@ export const generateReceiptPDF = async (receiptData: any) => {
       order.items.forEach((item: any) => {
         doc.text(item.materialName, 50, yPosition)
         doc.text(item.quantity.toString(), 300, yPosition)
-        doc.text(`₦${item.unitPrice.toFixed(2)}`, 350, yPosition)
-        doc.text(`₦${item.totalPrice.toFixed(2)}`, 450, yPosition)
+        doc.text(`₵${item.unitPrice.toFixed(2)}`, 350, yPosition)
+        doc.text(`₵${item.totalPrice.toFixed(2)}`, 450, yPosition)
         yPosition += 20
       })
 
@@ -86,13 +86,13 @@ export const generateReceiptPDF = async (receiptData: any) => {
       yPosition += 10
       doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke()
       yPosition += 20
+doc.text(`Subtotal: ₵${order.subtotal.toFixed(2)}`, 350, yPosition)
+yPosition += 15
 
-      doc.text(`Subtotal: ₦${order.subtotal.toFixed(2)}`, 350, yPosition)
-      yPosition += 15
-      doc.text(`Processing Fee (2.9%): ₦${order.processingFee.toFixed(2)}`, 350, yPosition)
-      yPosition += 15
-      doc.fontSize(14).text(`TOTAL PAID: ₦${order.totalAmount.toFixed(2)}`, 350, yPosition)
+doc.text(`Processing Fee (2.9%): ₵${order.processingFee.toFixed(2)}`, 350, yPosition)
+yPosition += 15
 
+doc.fontSize(14).text(`TOTAL PAID: ₵${order.totalAmount.toFixed(2)}`, 350, yPosition)
       // Footer
       doc.fontSize(10).text("Thank you for your purchase!", { align: "center" })
       doc.text("This is a computer-generated receipt.", { align: "center" })

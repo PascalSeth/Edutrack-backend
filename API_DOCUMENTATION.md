@@ -2709,20 +2709,22 @@ RSVP to event.
 
 # Mobile Endpoints
 
-**Note:** Mobile endpoints are currently not mounted in the main application. They are intended to be mounted under `/api/mobile` and provide mobile-optimized responses for parent access.
+**Note:** Mobile endpoints are mounted under `/mobile/parent` and provide mobile-optimized responses for parent access. All endpoints require authentication with a valid JWT token.
 
-## GET /mobile/home-screen
-Get home screen data for logged-in parent.
+## GET /mobile/parent/home
+Get home screen data for logged-in parent, including profile and children's summaries.
+
+**Access:** Private (Parent only)
 
 **Response:**
 ```json
 {
   "message": "Home screen data retrieved successfully",
   "parentProfile": {
-    "id": "parent-uuid",
-    "name": "Bob",
-    "surname": "Johnson",
-    "email": "bob.johnson@email.com",
+    "id": "user-uuid",
+    "name": "John",
+    "surname": "Doe",
+    "email": "john.doe@example.com",
     "profileImageUrl": "https://..."
   },
   "childrenData": [
@@ -2767,8 +2769,10 @@ Get home screen data for logged-in parent.
 }
 ```
 
-## GET /mobile/child-profile
-Get list of children for logged-in parent.
+## GET /mobile/parent/children
+Get list of children associated with the logged-in parent.
+
+**Access:** Private (Parent only)
 
 **Response:**
 ```json
@@ -2803,12 +2807,13 @@ Get list of children for logged-in parent.
 }
 ```
 
-## GET /mobile/academic-calendar
-Get academic calendar events.
+## GET /mobile/parent/academic-calendar
+Get academic calendar events (exams, holidays, events, assignments).
 
 **Query Parameters:**
-- `startDate`, `endDate` (date range)
-- `eventTypes` (array of event types)
+- `startDate` (optional): Start date in YYYY-MM-DD format (default: today)
+- `endDate` (optional): End date in YYYY-MM-DD format (default: 7 days from start)
+- `eventTypes` (optional): Comma-separated list of event types (EXAM, HOLIDAY, EVENT, ASSIGNMENT) (default: all)
 
 **Response:**
 ```json
@@ -2823,13 +2828,32 @@ Get academic calendar events.
       "endDate": "2025-12-20",
       "eventType": "EXAMINATION",
       "isHoliday": false
+    },
+    {
+      "id": "holiday-uuid",
+      "title": "Christmas Holiday",
+      "description": "School holiday",
+      "startDate": "2025-12-20",
+      "endDate": "2026-01-05",
+      "eventType": "HOLIDAY",
+      "isHoliday": true
     }
   ]
 }
 ```
 
-## GET /mobile/time-table/:studentId
+## GET /mobile/parent/time-table/:studentId
 Get timetable for specific student.
+
+**Path Parameters:**
+- `studentId`: UUID of the student
+
+**Query Parameters:**
+- `day` (optional): Filter by day (MONDAY, TUESDAY, etc.)
+- `startTime` (optional): Filter by start time (HH:MM)
+- `endTime` (optional): Filter by end time (HH:MM)
+- `subjectId` (optional): Filter by subject ID
+- `teacherId` (optional): Filter by teacher ID
 
 **Response:**
 ```json
@@ -2860,11 +2884,14 @@ Get timetable for specific student.
 }
 ```
 
-## GET /mobile/attendance-record
-Get attendance records.
+## GET /mobile/parent/attendance-record
+Get attendance records with filtering options.
 
 **Query Parameters:**
-- `studentId`, `startDate`, `endDate`, `subjectId`
+- `studentId` (required): UUID of the student
+- `startDate` (optional): Start date in YYYY-MM-DD format (default: today)
+- `endDate` (optional): End date in YYYY-MM-DD format (default: 7 days from start)
+- `subjectId` (optional): Filter by subject ID
 
 **Response:**
 ```json

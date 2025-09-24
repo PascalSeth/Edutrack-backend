@@ -3,6 +3,6 @@ import { getHomeScreenData } from "../../controllers/mobileEndpointController/ho
 
 const router = express.Router()
 
-router.get("/", getHomeScreenData)
+router.get("/home", getHomeScreenData)
 
 export default router

@@ -239,25 +239,52 @@ campus          Campus?   @relation("TeacherCampus", fields: [campusId], referen
 
 // Enhanced Parent model - removed school constraint to allow multi-school children
 model Parent {
-id              String    @id @default(uuid())
-user            User      @relation(fields: [id], references: [id], onDelete: Cascade)
-birthday        DateTime?
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [id], references: [id], onDelete: Cascade)
+  birthday        DateTime?
 
-// Verification status
-verificationStatus VerificationStatus @default(PENDING)
-verifiedAt      DateTime?
+  // Verification status
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt      DateTime?
 
-// Parent relationships - children can be in different schools
-children        Student[] // Legacy - to be removed after migration
-studentParents  StudentParent[]
-payments        Payment[]
-feedbacks       ParentFeedback[]
+  // Parent relationships - children can be in different schools
+  children        Student[] // Legacy - to be removed after migration
+  studentParents  StudentParent[]
+  payments        Payment[]
+  feedbacks       ParentFeedback[]
 
-materialCarts   MaterialCart[]
-materialOrders  MaterialOrder[]
+  materialCarts   MaterialCart[]
+  materialOrders  MaterialOrder[]
 
-// Academic Management
-reportCardViews ReportCardView[]
+  // Academic Management
+  reportCardViews ReportCardView[]
+
+  // Parent subscription for service access
+  subscriptions   ParentSubscription[]
+}
+
+// Parent Subscription for service access
+model ParentSubscription {
+  id              String    @id @default(uuid())
+  parentId        String
+  parent          Parent    @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  plan            ParentSubscriptionPlan
+  startDate       DateTime  @default(now())
+  endDate         DateTime
+  amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("NGN")
+
+  status          SubscriptionStatus @default(ACTIVE)
+
+  // Payment reference
+  paymentId       String?
+  payment         Payment?  @relation(fields: [paymentId], references: [id])
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([parentId, startDate]) // Prevent overlapping subscriptions
 }
 
 // Enhanced Student model with parent-school relationship
@@ -306,6 +333,9 @@ campus          Campus?   @relation("StudentCampus", fields: [campusId], referen
 
 // Parent relationships (many-to-many with relationship type)
 parents         StudentParent[]
+
+// Fee breakdown overrides
+feeBreakdownOverrides FeeBreakdownOverride[]
 }
 
 // Student-Parent Relationship (many-to-many with relationship type)
@@ -435,6 +465,7 @@ academicYear    AcademicYear @relation(fields: [academicYearId], references: [id
 timetables      Timetable[]
 exams           Exam[]
 reportCards     ReportCard[]
+calendarItems   CalendarItem[]
 
 createdAt       DateTime  @default(now())
 updatedAt       DateTime  @updatedAt
@@ -937,6 +968,8 @@ isAllDay        Boolean   @default(false)
 // Relationships
 academicCalendarId String
 academicCalendar AcademicCalendar @relation(fields: [academicCalendarId], references: [id])
+termId           String?
+term             Term?     @relation(fields: [termId], references: [id])
 }
 
 // Enhanced Assignments with file storage
@@ -1079,7 +1112,7 @@ id              String    @id @default(uuid())
 name            String
 description     String?
 amount          Decimal   @db.Decimal(10, 2)
-currency        String    @default("USD")
+currency        String    @default("GHS")
 dueDate         DateTime?
 gracePeriod     Int?      // Days
 lateFee         Decimal?  @db.Decimal(10, 2)
@@ -1093,6 +1126,9 @@ academicYear    AcademicYear @relation(fields: [academicYearId], references: [id
 schoolId        String
 school          School    @relation(fields: [schoolId], references: [id])
 
+// Fee breakdown items
+feeBreakdownItems FeeBreakdownItem[]
+
 // Payments
 payments        Payment[]
 
@@ -1100,37 +1136,82 @@ createdAt       DateTime  @default(now())
 updatedAt       DateTime  @updatedAt
 }
 
-// Enhanced Payment system with transaction fees
-model Payment {
+// Detailed Fee Breakdown Items
+model FeeBreakdownItem {
 id              String    @id @default(uuid())
+name            String    // e.g., "Tuition Fee", "Library Fee", "Sports Fee"
+description     String?
 amount          Decimal   @db.Decimal(10, 2)
-currency        String    @default("USD")
-status          PaymentStatus
-paymentMethod   PaymentMethod
-transactionId   String?
-paymentDate     DateTime  @default(now())
+isMandatory     Boolean   @default(true)
+isRecurring     Boolean   @default(true) // Monthly, termly, etc.
+frequency       String?   // "MONTHLY", "TERM", "ANNUAL"
 
-// Transaction fees (EduTrack's revenue)
-transactionFee  Decimal   @db.Decimal(10, 2) @default(0)
-feePercentage   Float     @default(0.025) // 2.5%
-
-// Relationships
-schoolId        String
-school          School    @relation(fields: [schoolId], references: [id])
-parentId        String
-parent          Parent    @relation(fields: [parentId], references: [id])
+// Fee structure relationship
 feeStructureId  String
-feeStructure    FeeStructure @relation(fields: [feeStructureId], references: [id])
+feeStructure    FeeStructure @relation(fields: [feeStructureId], references: [id], onDelete: Cascade)
 
-// Receipt
-receiptNumber   String?   @unique
-receiptUrl      String?   // URL to receipt document
-
-// Payment gateway data
-gatewayData     Json?
+// Student-specific overrides (optional)
+studentOverrides FeeBreakdownOverride[]
 
 createdAt       DateTime  @default(now())
 updatedAt       DateTime  @updatedAt
+}
+
+// Student-specific Fee Overrides
+model FeeBreakdownOverride {
+id              String    @id @default(uuid())
+
+// Relationships
+feeBreakdownItemId String
+feeBreakdownItem   FeeBreakdownItem @relation(fields: [feeBreakdownItemId], references: [id], onDelete: Cascade)
+studentId          String
+student            Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+// Override details
+overrideAmount    Decimal? @db.Decimal(10, 2)
+isExempt          Boolean   @default(false)
+overrideReason    String?
+
+createdAt         DateTime @default(now())
+updatedAt         DateTime @updatedAt
+
+@@unique([feeBreakdownItemId, studentId])
+}
+
+// Enhanced Payment system with transaction fees
+model Payment {
+  id              String    @id @default(uuid())
+  amount          Decimal   @db.Decimal(10, 2)
+  currency        String    @default("USD")
+  status          PaymentStatus
+  paymentMethod   PaymentMethod
+  transactionId   String?
+  paymentDate     DateTime  @default(now())
+
+  // Transaction fees (EduTrack's revenue)
+  transactionFee  Decimal   @db.Decimal(10, 2) @default(0)
+  feePercentage   Float     @default(0.025) // 2.5%
+
+  // Relationships
+  schoolId        String
+  school          School    @relation(fields: [schoolId], references: [id])
+  parentId        String
+  parent          Parent    @relation(fields: [parentId], references: [id])
+  feeStructureId  String?
+  feeStructure    FeeStructure? @relation(fields: [feeStructureId], references: [id])
+
+  // Parent subscription payments
+  parentSubscriptions ParentSubscription[]
+
+  // Receipt
+  receiptNumber   String?   @unique
+  receiptUrl      String?   // URL to receipt document
+
+  // Payment gateway data
+  gatewayData     Json?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // School subscription for premium features
@@ -1406,7 +1487,7 @@ name            String
 description     String?
 imageUrls       String[]  // Multiple product images
 price           Decimal   @db.Decimal(10, 2)
-currency        String    @default("NGN")
+currency        String    @default("GHS")
 stockQuantity   Int       @default(0)
 minOrderQty     Int       @default(1)
 maxOrderQty     Int?
@@ -1481,7 +1562,7 @@ paystackFee     Decimal   @db.Decimal(10, 2) // Paystack's fee
 totalAmount     Decimal   @db.Decimal(10, 2) // Total paid by parent
 schoolAmount    Decimal   @db.Decimal(10, 2) // Amount school receives
 
-currency        String    @default("NGN")
+currency        String    @default("GHS")
 
 // Delivery information
 deliveryMethod  DeliveryMethod @default(SCHOOL_PICKUP)
@@ -2181,10 +2262,23 @@ POOR
 }
 
 enum AssetStatus {
-AVAILABLE
-ASSIGNED
-IN_REPAIR
-DISPOSED
-LOST
-RETIRED
+  AVAILABLE
+  ASSIGNED
+  IN_REPAIR
+  DISPOSED
+  LOST
+  RETIRED
+}
+
+enum ParentSubscriptionPlan {
+  MONTHLY
+  SIX_MONTHS
+  ANNUAL
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
 }

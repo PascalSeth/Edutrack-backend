@@ -51,6 +51,7 @@ const createCalendarItemSchema = zod_1.z.object({
     ]),
     isAllDay: zod_1.z.boolean().default(false),
     academicCalendarId: zod_1.z.string().uuid("Invalid academic calendar ID"),
+    termId: zod_1.z.string().uuid("Invalid term ID").optional(),
 });
 // Term Management
 const getTerms = async (req, res) => {
@@ -514,6 +515,18 @@ const createCalendarItem = async (req, res) => {
         if (!academicCalendar) {
             return res.status(404).json({ message: "Academic calendar not found or access denied" });
         }
+        // If termId is provided, verify it exists and belongs to the same school
+        if (data.termId) {
+            const term = await setup_1.prisma.term.findFirst({
+                where: {
+                    id: data.termId,
+                    schoolId: academicCalendar.schoolId,
+                },
+            });
+            if (!term) {
+                return res.status(404).json({ message: "Term not found or does not belong to the same school" });
+            }
+        }
         // Validate dates
         const startDate = new Date(data.startDate);
         const endDate = new Date(data.endDate);
@@ -529,12 +542,14 @@ const createCalendarItem = async (req, res) => {
                 itemType: data.itemType,
                 isAllDay: data.isAllDay,
                 academicCalendarId: data.academicCalendarId,
+                termId: data.termId,
             },
         });
         setup_1.logger.info("Calendar item created", {
             userId: req.user?.id,
             calendarItemId: calendarItem.id,
             academicCalendarId: data.academicCalendarId,
+            termId: data.termId,
         });
         res.status(201).json({
             message: "Calendar item created successfully",
@@ -587,6 +602,9 @@ const getCalendarItems = async (req, res) => {
         }
         const calendarItems = await setup_1.prisma.calendarItem.findMany({
             where,
+            include: {
+                term: { select: { id: true, name: true, startDate: true, endDate: true } },
+            },
             orderBy: { startDate: "asc" },
         });
         setup_1.logger.info("Calendar items retrieved", { userId: req.user?.id, academicCalendarId });
@@ -703,6 +721,28 @@ const getAcademicCalendar = async (req, res) => {
             },
             orderBy: { startTime: "asc" },
         });
+        // Get calendar items within the date range
+        const calendarItems = await setup_1.prisma.calendarItem.findMany({
+            where: {
+                ...filter,
+                OR: [
+                    {
+                        startDate: { gte: start, lte: end },
+                    },
+                    {
+                        endDate: { gte: start, lte: end },
+                    },
+                    {
+                        startDate: { lte: start },
+                        endDate: { gte: end },
+                    },
+                ],
+            },
+            include: {
+                term: { select: { id: true, name: true } },
+            },
+            orderBy: { startDate: "asc" },
+        });
         setup_1.logger.info("Academic calendar retrieved", { userId: req.user?.id, startDate, endDate });
         res.status(200).json({
             message: "Academic calendar retrieved successfully",
@@ -712,6 +752,7 @@ const getAcademicCalendar = async (req, res) => {
                 holidays,
                 exams,
                 events,
+                calendarItems,
             },
         });
     }

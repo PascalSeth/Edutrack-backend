@@ -9,5 +9,6 @@ router.get('/', (0, setup_1.authMiddleware)(['SUPER_ADMIN', 'PRINCIPAL', 'SCHOOL
 router.get('/:id', (0, setup_1.authMiddleware)(['SUPER_ADMIN', 'PRINCIPAL', 'TEACHER', 'SCHOOL_ADMIN']), teacherController_1.getTeacherById);
 router.post('/', (0, setup_1.authMiddleware)(['SUPER_ADMIN', 'PRINCIPAL', 'SCHOOL_ADMIN']), teacherController_1.createTeacher);
 router.put('/:id', (0, setup_1.authMiddleware)(['SUPER_ADMIN', 'PRINCIPAL', 'SCHOOL_ADMIN']), teacherController_1.updateTeacher);
+router.put('/:id/verify', (0, setup_1.authMiddleware)(['SUPER_ADMIN', 'PRINCIPAL', 'SCHOOL_ADMIN']), teacherController_1.verifyTeacher);
 router.delete('/:id', (0, setup_1.authMiddleware)(['SUPER_ADMIN', 'PRINCIPAL', 'SCHOOL_ADMIN']), teacherController_1.deleteTeacher);
 exports.default = router;

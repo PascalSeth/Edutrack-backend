@@ -307,9 +307,12 @@ export const createNotification = async (userId: string, title: string, content:
   }
 }
 
-// Revenue calculation helper
-export const calculateTransactionFee = (amount: number, feePercentage = 0.025): number => {
-  return Math.round(amount * feePercentage * 100) / 100 // Round to 2 decimal places
+// Revenue calculation helper - updated for 2.95% fee structure
+// Multiplies by 1.0295 to account for Paystack's 1.9% fee
+export const calculateTransactionFee = (amount: number): number => {
+  const totalAmount = amount * 1.0295
+  const fee = totalAmount - amount
+  return Math.round(fee * 100) / 100 // Round to 2 decimal places
 }
 
 // Multi-tenant validation helpers

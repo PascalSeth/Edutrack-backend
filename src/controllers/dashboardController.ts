@@ -313,13 +313,15 @@ export const getTeacherDashboard = async (req: AuthRequest, res: Response) => {
             _count: { select: { submissions: true } },
           },
         }),
-        prisma.assignment.count({
-          where: {
-            teacherId: req.user.id,
-            dueDate: { gte: new Date() },
-            submissions: { none: {} },
-          },
-        }),
+        prisma.$queryRaw`
+          SELECT COUNT(*) as count
+          FROM "AssignmentSubmission" sub
+          LEFT JOIN "Result" r ON sub."assignmentId" = r."assignmentId" AND sub."studentId" = r."studentId"
+          WHERE sub."assignmentId" IN (
+            SELECT id FROM "Assignment" WHERE "teacherId" = ${req.user.id}
+          )
+          AND r.id IS NULL
+        `,
         prisma.attendance.findMany({
           where: {
             recordedById: req.user.id,
@@ -377,7 +379,7 @@ export const getTeacherDashboard = async (req: AuthRequest, res: Response) => {
         totalClasses: myClasses.length,
         totalSubjects: mySubjects.length,
         totalAssignments: myAssignments.length,
-        pendingSubmissions,
+        pendingSubmissions: (pendingSubmissions as any)[0]?.count || 0,
       },
       myClasses,
       mySubjects,

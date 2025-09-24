@@ -119,21 +119,24 @@ const createSubject = async (req, res) => {
         if (!["PRINCIPAL", "SCHOOL_ADMIN", "SUPER_ADMIN"].includes(req.user?.role || "")) {
             return res.status(403).json({ message: "Access denied" });
         }
-        // Verify school exists and user has access
-        const school = await setup_1.prisma.school.findFirst({
-            where: {
-                id: data.schoolId,
-                ...(0, setup_1.getTenantFilter)(req.user),
-            },
-        });
+        // For non-SUPER_ADMIN users, use their assigned school and ignore the provided schoolId
+        let schoolId;
+        if (req.user && req.user.role !== "SUPER_ADMIN") {
+            schoolId = req.user.schoolId;
+        }
+        else {
+            schoolId = data.schoolId;
+        }
+        // Verify school exists
+        const school = await setup_1.prisma.school.findUnique({ where: { id: schoolId } });
         if (!school) {
-            return res.status(404).json({ message: "School not found or access denied" });
+            return res.status(404).json({ message: "School not found" });
         }
         // Check if subject with same name already exists in school
         const existingSubject = await setup_1.prisma.subject.findFirst({
             where: {
                 name: data.name,
-                schoolId: data.schoolId,
+                schoolId: schoolId,
             },
         });
         if (existingSubject) {
@@ -144,13 +147,14 @@ const createSubject = async (req, res) => {
                 name: data.name,
                 code: data.code,
                 description: data.description,
-                schoolId: data.schoolId,
+                schoolId: schoolId,
             },
         });
         setup_1.logger.info("Subject created", {
             userId: req.user?.id,
+            userRole: req.user?.role,
             subjectId: subject.id,
-            schoolId: data.schoolId,
+            schoolId: schoolId,
         });
         res.status(201).json({
             message: "Subject created successfully",

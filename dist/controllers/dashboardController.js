@@ -68,13 +68,12 @@ const getSchoolAdminDashboard = async (req, res) => {
         const [totalStudents, totalTeachers, totalParents, totalClasses, pendingPayments, completedPayments, recentEvents, attendanceRate,] = await Promise.all([
             setup_1.prisma.student.count({ where: filter }),
             setup_1.prisma.teacher.count({ where: filter }),
-            setup_1.prisma.parent.count({
-                where: {
-                    children: {
-                        some: { schoolId: req.user.schoolId },
-                    },
-                },
-            }),
+            setup_1.prisma.$queryRaw `
+        SELECT COUNT(DISTINCT sp."parentId") as count
+        FROM "StudentParent" sp
+        JOIN "Student" s ON sp."studentId" = s.id
+        WHERE s."schoolId" = ${req.user.schoolId}
+      `,
             setup_1.prisma.class.count({ where: filter }),
             setup_1.prisma.payment.count({
                 where: { ...filter, status: "PENDING" },
@@ -97,10 +96,13 @@ const getSchoolAdminDashboard = async (req, res) => {
                 },
             }),
             setup_1.prisma.$queryRaw `
-        SELECT 
-          ROUND(
-            (COUNT(*) FILTER (WHERE present = true)::decimal / COUNT(*)) * 100, 2
-          ) as attendance_rate
+        SELECT
+          CASE
+            WHEN COUNT(*) = 0 THEN 0
+            ELSE ROUND(
+              (COUNT(*) FILTER (WHERE present = true)::decimal / COUNT(*)) * 100, 2
+            )
+          END as attendance_rate
         FROM "Attendance" a
         JOIN "Student" s ON a."studentId" = s.id
         WHERE s."schoolId" = ${req.user.schoolId}
@@ -111,7 +113,7 @@ const getSchoolAdminDashboard = async (req, res) => {
             overview: {
                 totalStudents,
                 totalTeachers,
-                totalParents,
+                totalParents: totalParents[0]?.count || 0,
                 totalClasses,
                 pendingPayments,
                 completedPayments,
@@ -184,12 +186,15 @@ const getPrincipalDashboard = async (req, res) => {
                 },
             }),
             setup_1.prisma.$queryRaw `
-        SELECT 
+        SELECT
           COUNT(*) as total_records,
           COUNT(*) FILTER (WHERE present = true) as present_count,
-          ROUND(
-            (COUNT(*) FILTER (WHERE present = true)::decimal / COUNT(*)) * 100, 2
-          ) as attendance_rate
+          CASE
+            WHEN COUNT(*) = 0 THEN 0
+            ELSE ROUND(
+              (COUNT(*) FILTER (WHERE present = true)::decimal / COUNT(*)) * 100, 2
+            )
+          END as attendance_rate
         FROM "Attendance" a
         JOIN "Student" s ON a."studentId" = s.id
         WHERE s."schoolId" = ${req.user.schoolId}
@@ -267,13 +272,15 @@ const getTeacherDashboard = async (req, res) => {
                     _count: { select: { submissions: true } },
                 },
             }),
-            setup_1.prisma.assignment.count({
-                where: {
-                    teacherId: req.user.id,
-                    dueDate: { gte: new Date() },
-                    submissions: { none: {} },
-                },
-            }),
+            setup_1.prisma.$queryRaw `
+          SELECT COUNT(*) as count
+          FROM "AssignmentSubmission" sub
+          LEFT JOIN "Result" r ON sub."assignmentId" = r."assignmentId" AND sub."studentId" = r."studentId"
+          WHERE sub."assignmentId" IN (
+            SELECT id FROM "Assignment" WHERE "teacherId" = ${req.user.id}
+          )
+          AND r.id IS NULL
+        `,
             setup_1.prisma.attendance.findMany({
                 where: {
                     recordedById: req.user.id,
@@ -329,7 +336,7 @@ const getTeacherDashboard = async (req, res) => {
                 totalClasses: myClasses.length,
                 totalSubjects: mySubjects.length,
                 totalAssignments: myAssignments.length,
-                pendingSubmissions,
+                pendingSubmissions: pendingSubmissions[0]?.count || 0,
             },
             myClasses,
             mySubjects,
@@ -356,7 +363,11 @@ const getParentDashboard = async (req, res) => {
         const [children, recentNotifications, upcomingEvents, pendingPayments, recentResults] = await Promise.all([
             // Get all children across different schools
             setup_1.prisma.student.findMany({
-                where: { parentId: req.user.id },
+                where: {
+                    parents: {
+                        some: { parentId: req.user.id }
+                    }
+                },
                 include: {
                     school: { select: { id: true, name: true } },
                     class: { select: { name: true } },
@@ -374,7 +385,11 @@ const getParentDashboard = async (req, res) => {
                     startTime: { gte: new Date() },
                     school: {
                         students: {
-                            some: { parentId: req.user.id },
+                            some: {
+                                parents: {
+                                    some: { parentId: req.user.id }
+                                }
+                            }
                         },
                     },
                 },
@@ -397,7 +412,11 @@ const getParentDashboard = async (req, res) => {
             // Get recent results for all children
             setup_1.prisma.result.findMany({
                 where: {
-                    student: { parentId: req.user.id },
+                    student: {
+                        parents: {
+                            some: { parentId: req.user.id }
+                        }
+                    }
                 },
                 take: 10,
                 orderBy: { uploadedAt: "desc" },
@@ -426,12 +445,15 @@ const getParentDashboard = async (req, res) => {
         // Get attendance summary for each child
         const childrenWithAttendance = await Promise.all(children.map(async (child) => {
             const attendanceSummary = await setup_1.prisma.$queryRaw `
-          SELECT 
+          SELECT
             COUNT(*) as total_days,
             COUNT(*) FILTER (WHERE present = true) as present_days,
-            ROUND(
-              (COUNT(*) FILTER (WHERE present = true)::decimal / COUNT(*)) * 100, 2
-            ) as attendance_rate
+            CASE
+              WHEN COUNT(*) = 0 THEN 0
+              ELSE ROUND(
+                (COUNT(*) FILTER (WHERE present = true)::decimal / COUNT(*)) * 100, 2
+              )
+            END as attendance_rate
           FROM "Attendance"
           WHERE "studentId" = ${child.id}
             AND date >= NOW() - INTERVAL '30 days'

@@ -32,8 +32,11 @@ const getAssignments = async (req, res) => {
         let where = {};
         // Apply tenant filtering based on user role
         if (req.user?.role === "SUPER_ADMIN") {
-            // Super admin sees all assignments
-            where = {};
+            // Super admin sees all assignments, but can filter by schoolId if provided
+            const schoolId = req.query.schoolId;
+            if (schoolId) {
+                where.schoolId = schoolId;
+            }
         }
         else if (req.user?.role === "TEACHER") {
             // Teachers see only their assignments

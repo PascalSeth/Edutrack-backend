@@ -4,20 +4,18 @@ const express_1 = require("express");
 const reportCardController_1 = require("../controllers/reportCardController");
 const setup_1 = require("../utils/setup");
 const router = (0, express_1.Router)();
-// Apply authentication middleware to all routes
-router.use(setup_1.authMiddleware);
 // Report card routes
-router.get("/", reportCardController_1.getReportCards);
-router.get("/:id", reportCardController_1.getReportCardById);
-router.post("/", reportCardController_1.createReportCard);
-router.put("/:id", reportCardController_1.updateReportCard);
-router.post("/:id/approve", reportCardController_1.approveReportCard);
-router.post("/:id/publish", reportCardController_1.publishReportCard);
+router.get("/", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), reportCardController_1.getReportCards);
+router.get("/:id", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER"]), reportCardController_1.getReportCardById);
+router.post("/", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), reportCardController_1.createReportCard);
+router.put("/:id", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), reportCardController_1.updateReportCard);
+router.post("/:id/approve", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), reportCardController_1.approveReportCard);
+router.post("/:id/publish", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), reportCardController_1.publishReportCard);
 // Bulk generation
-router.post("/generate", reportCardController_1.generateReportCards);
+router.post("/generate", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), reportCardController_1.generateReportCards);
 // Subject report routes
-router.post("/subject-reports", reportCardController_1.createSubjectReport);
-router.put("/subject-reports/:id", reportCardController_1.updateSubjectReport);
+router.post("/subject-reports", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), reportCardController_1.createSubjectReport);
+router.put("/subject-reports/:id", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), reportCardController_1.updateSubjectReport);
 // Student-specific routes
-router.get("/student/:studentId", reportCardController_1.getStudentReportCards);
+router.get("/student/:studentId", (0, setup_1.authMiddleware)(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN", "TEACHER", "PARENT"]), reportCardController_1.getStudentReportCards);
 exports.default = router;

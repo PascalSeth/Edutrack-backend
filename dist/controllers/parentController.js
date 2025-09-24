@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getParentsBySchool = exports.getParentChildrenAcrossSchools = exports.deleteParent = exports.updateParent = exports.createParent = exports.getParentById = exports.getParents = void 0;
+exports.verifyParent = exports.getParentsBySchool = exports.getParentChildrenAcrossSchools = exports.deleteParent = exports.updateParent = exports.createParent = exports.getParentById = exports.getParents = void 0;
 const zod_1 = require("zod");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const setup_1 = require("../utils/setup");
@@ -633,3 +633,88 @@ const getParentsBySchool = async (req, res) => {
     }
 };
 exports.getParentsBySchool = getParentsBySchool;
+const verifyParentSchema = zod_1.z.object({
+    status: zod_1.z.enum(["VERIFIED", "REJECTED"]).describe("The verification status of the parent"),
+    comments: zod_1.z.string().optional().describe("Optional comments for the verification status"),
+});
+const verifyParent = async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Only school admins, principals, and super admins can verify parents
+        if (!["SCHOOL_ADMIN", "PRINCIPAL", "SUPER_ADMIN"].includes(req.user?.role || "")) {
+            return res.status(403).json({
+                message: "Only school administrators can verify parents",
+            });
+        }
+        const data = verifyParentSchema.parse(req.body);
+        // For non-super admins, ensure they can only verify parents with children in their school
+        let where = { id };
+        if (req.user?.role !== "SUPER_ADMIN") {
+            where = {
+                id,
+                children: {
+                    some: {
+                        schoolId: req.user?.schoolId,
+                    },
+                },
+            };
+        }
+        const parent = await setup_1.prisma.parent.findFirst({
+            where,
+            include: { user: true },
+        });
+        if (!parent) {
+            return res.status(404).json({ message: "Parent not found" });
+        }
+        // Update parent verification status
+        await setup_1.prisma.parent.update({
+            where: { id },
+            data: {
+                verificationStatus: data.status,
+                verifiedAt: data.status === "VERIFIED" ? new Date() : null,
+            },
+        });
+        // Create notification for parent
+        const notificationTitle = data.status === "VERIFIED" ? "Parent Verification Approved" : "Parent Verification Rejected";
+        const notificationContent = data.status === "VERIFIED"
+            ? "Congratulations! Your parent account has been verified and is now active."
+            : `Your parent verification was rejected. ${data.comments || "Please contact your school administration for more information."}`;
+        await setup_1.prisma.notification.create({
+            data: {
+                userId: parent.id,
+                title: notificationTitle,
+                content: notificationContent,
+                type: "APPROVAL",
+            },
+        });
+        setup_1.logger.info("Parent verification updated", {
+            userId: req.user?.id,
+            parentId: id,
+            status: data.status,
+            comments: data.comments,
+        });
+        res.status(200).json({
+            message: `Parent ${data.status.toLowerCase()} successfully`,
+            parent: {
+                id: parent.id,
+                user: {
+                    name: parent.user.name,
+                    surname: parent.user.surname,
+                    email: parent.user.email,
+                },
+                verificationStatus: data.status,
+            },
+        });
+    }
+    catch (error) {
+        if (error instanceof zod_1.z.ZodError) {
+            setup_1.logger.warn("Invalid input for parent verification", {
+                userId: req.user?.id,
+                errors: error.errors,
+            });
+            return res.status(400).json({ message: "Invalid input", errors: error.errors });
+        }
+        (0, setup_1.handleError)(res, error, "Failed to verify parent");
+    }
+};
+exports.verifyParent = verifyParent;

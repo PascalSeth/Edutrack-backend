@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTransferDetails = exports.verifyTransfer = exports.getBanks = exports.verifyAccountNumber = exports.initiateTransfer = exports.createTransferRecipient = exports.createSubaccount = exports.verifyPayment = exports.initializePayment = void 0;
+exports.calculateTransactionFees = exports.getTransferDetails = exports.verifyTransfer = exports.getBanks = exports.verifyAccountNumber = exports.initiateTransfer = exports.createTransferRecipient = exports.createSubaccount = exports.verifyPayment = exports.initializePayment = void 0;
 const axios_1 = __importDefault(require("axios"));
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
@@ -17,7 +17,11 @@ const paystackApi = axios_1.default.create({
 // Initialize payment
 const initializePayment = async (data) => {
     try {
-        const response = await paystackApi.post("/transaction/initialize", data);
+        const payload = {
+            ...data,
+            currency: data.currency || "GHS", // Default to GHS
+        };
+        const response = await paystackApi.post("/transaction/initialize", payload);
         return response.data.data;
     }
     catch (error) {
@@ -55,7 +59,7 @@ const createTransferRecipient = async (data) => {
     try {
         const response = await paystackApi.post("/transferrecipient", {
             ...data,
-            currency: data.currency || "NGN",
+            currency: data.currency || "GHS",
         });
         return response.data.data;
     }
@@ -70,7 +74,7 @@ const initiateTransfer = async (data) => {
     try {
         const response = await paystackApi.post("/transfer", {
             ...data,
-            currency: data.currency || "NGN",
+            currency: data.currency || "GHS",
             source: "balance",
         });
         return response.data.data;
@@ -129,3 +133,24 @@ const getTransferDetails = async (transferId) => {
     }
 };
 exports.getTransferDetails = getTransferDetails;
+// Calculate fee structure for transactions
+// Applies 2.95% fee structure: multiply by 1.0295 to account for Paystack's 1.9% fee
+// Original amount remains intact, we add the fee to ensure no losses
+const calculateTransactionFees = (subtotal) => {
+    // Total amount = subtotal * 1.0295 (covers Paystack's 1.9% fee)
+    const totalAmount = subtotal * 1.0295;
+    // Our processing fee = totalAmount - subtotal (approximately 2.9% of subtotal)
+    const processingFee = totalAmount - subtotal;
+    // Paystack's fee on original amount (1.9%)
+    const paystackFee = subtotal * 0.019;
+    // School receives the original purchase amount
+    const schoolAmount = subtotal;
+    return {
+        subtotal,
+        totalAmount,
+        processingFee,
+        paystackFee,
+        schoolAmount,
+    };
+};
+exports.calculateTransactionFees = calculateTransactionFees;
