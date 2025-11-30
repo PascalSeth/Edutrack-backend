@@ -242,6 +242,7 @@ export const registerSchool = async (req: AuthRequest, res: Response) => {
 
     const school = await prisma.$transaction(async (tx) => {
       // Create school
+      const isSuperAdmin = req.user?.role === "SUPER_ADMIN"
       const newSchool = await tx.school.create({
         data: {
           name: data.name,
@@ -256,7 +257,9 @@ export const registerSchool = async (req: AuthRequest, res: Response) => {
           schoolType: data.schoolType,
           missionStatement: data.missionStatement,
           virtualTourUrl: data.virtualTourUrl,
-          registrationStatus: "PENDING",
+          registrationStatus: isSuperAdmin ? "APPROVED" : "PENDING",
+          isVerified: isSuperAdmin,
+          verifiedAt: isSuperAdmin ? new Date() : null,
         },
       })
       logger.info("New school created within transaction", { schoolId: newSchool.id, schoolName: newSchool.name })
@@ -360,8 +363,67 @@ export const registerSchool = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    // Handle logo upload if provided
+    if (req.file) {
+      try {
+        // Upload logo directly to Supabase
+        const { data: logoData, error: uploadError } = await supabase.storage
+          .from("school-documents")
+          .upload(`/logos/${req.file.originalname}-${Date.now()}`, req.file.buffer, {
+            cacheControl: "2592000",
+            contentType: req.file.mimetype,
+          })
+
+        if (uploadError) {
+          throw new Error(uploadError.message)
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage.from("school-documents").getPublicUrl(logoData.path)
+
+        // Update school with new logo URL
+        await prisma.school.update({
+          where: { id: school.id },
+          data: {
+            logoUrl: urlData.publicUrl,
+            updatedAt: new Date(),
+          },
+        })
+
+        // Save file record to database
+        await prisma.fileStorage.create({
+          data: {
+            fileName: logoData.path.split("/").pop() || req.file.originalname,
+            originalName: req.file.originalname,
+            fileSize: req.file.size,
+            mimeType: req.file.mimetype,
+            fileUrl: urlData.publicUrl,
+            bucketName: "school-documents",
+            uploadedById: req.user!.id,
+            schoolId: school.id,
+            fileCategory: "SCHOOL_LOGO",
+          },
+        })
+
+        logger.info("School logo uploaded during registration", {
+          userId: req.user?.id,
+          schoolId: school.id,
+          logoUrl: urlData.publicUrl,
+        })
+      } catch (logoError) {
+        logger.error("Failed to upload school logo during registration", {
+          schoolId: school.id,
+          error: logoError instanceof Error ? logoError.message : 'Unknown error',
+        })
+        // Don't fail the registration if logo upload fails
+      }
+    }
+
+    const isSuperAdmin = req.user?.role === "SUPER_ADMIN"
     res.status(201).json({
-      message: "School registered successfully. Awaiting verification.",
+      message: isSuperAdmin
+        ? "School registered and approved successfully."
+        : "School registered successfully. Awaiting verification.",
       school: {
         id: school.id,
         name: school.name,

@@ -12,9 +12,21 @@ interface EmailConfig {
   };
 }
 
-// Create transporter
+// Create transporter with improved connection settings
 const createTransporter = () => {
-  const config: EmailConfig = {
+  const config: EmailConfig & {
+    pool?: boolean;
+    maxConnections?: number;
+    maxMessages?: number;
+    rateDelta?: number;
+    rateLimit?: number;
+    connectionTimeout?: number;
+    greetingTimeout?: number;
+    socketTimeout?: number;
+    tls?: {
+      rejectUnauthorized?: boolean;
+    };
+  } = {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: process.env.SMTP_SECURE === 'true',
@@ -22,9 +34,56 @@ const createTransporter = () => {
       user: process.env.SMTP_USER || '',
       pass: process.env.SMTP_PASS || '',
     },
+    // Connection pooling for better performance and reliability
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
+    rateDelta: 1000,
+    rateLimit: 5,
+    // Timeout settings to prevent hanging connections
+    connectionTimeout: 60000, // 60 seconds
+    greetingTimeout: 30000,   // 30 seconds
+    socketTimeout: 60000,     // 60 seconds
+    // TLS settings
+    tls: {
+      rejectUnauthorized: false, // For development; set to true in production
+    },
   };
 
   return nodemailer.createTransport(config);
+};
+
+// Retry helper function with exponential backoff
+const retryEmailSend = async (
+  sendFunction: () => Promise<any>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<any> => {
+  let lastError: Error;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await sendFunction();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Unknown error');
+
+      if (attempt === maxRetries) {
+        throw lastError;
+      }
+
+      // Exponential backoff with jitter
+      const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+      logger.warn(`Email send attempt ${attempt} failed, retrying in ${delay}ms`, {
+        error: lastError.message,
+        attempt,
+        maxRetries
+      });
+
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError!;
 };
 
 // Generate random password
@@ -58,104 +117,101 @@ export const sendParentWelcomeEmail = async (
   generatedPassword: string
 ): Promise<boolean> => {
   try {
-    const transporter = createTransporter();
+    const result = await retryEmailSend(async () => {
+      const transporter = createTransporter();
 
-    const mailOptions = {
-      from: `"${process.env.EMAIL_FROM_NAME || 'EduTrack'}" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: `Welcome to EduTrack - Parent Account Created`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-            <h2 style="color: #333; margin: 0;">Welcome to EduTrack!</h2>
+      const mailOptions = {
+        from: `"${process.env.EMAIL_FROM_NAME || 'EduTrack'}" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: `Welcome to EduTrack - Parent Account Created`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <h2 style="color: #333; margin: 0;">Welcome to EduTrack!</h2>
+            </div>
+
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
+              <p style="font-size: 16px; color: #333; margin-bottom: 15px;">
+                Dear ${name} ${surname},
+              </p>
+
+              <p style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 15px;">
+                Your parent account has been successfully created for <strong>${schoolName}</strong>.
+                A student record for <strong>${studentName} ${studentSurname}</strong> has been created and is now associated with your account.
+              </p>
+
+              <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #007bff;">
+                <h3 style="margin: 0 0 10px 0; color: #333; font-size: 16px;">Your Login Credentials</h3>
+                <p style="margin: 5px 0; font-size: 14px; color: #333;">
+                  <strong>Email:</strong> ${email}
+                </p>
+                <p style="margin: 5px 0; font-size: 14px; color: #333;">
+                  <strong>Temporary Password:</strong> <code style="background-color: #e9ecef; padding: 2px 6px; border-radius: 3px; font-family: monospace;">${generatedPassword}</code>
+                </p>
+              </div>
+
+              <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px; color: #856404;">
+                  <strong>⚠️ Important:</strong> Please change your password after your first login for security purposes.
+                </p>
+              </div>
+
+              <p style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 15px;">
+                You can now log in to the EduTrack platform to:
+              </p>
+
+              <ul style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 20px;">
+                <li>View your child's academic progress</li>
+                <li>Access attendance records</li>
+                <li>Review assignments and results</li>
+                <li>Receive important notifications</li>
+                <li>Communicate with teachers</li>
+              </ul>
+
+
+              <p style="font-size: 12px; color: #999; text-align: center; margin-top: 30px; border-top: 1px solid #e9ecef; padding-top: 20px;">
+                If you have any questions, please contact your school's administration.<br>
+                This is an automated message, please do not reply to this email.
+              </p>
+            </div>
           </div>
+        `,
+        text: `
+          Welcome to EduTrack!
 
-          <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
-            <p style="font-size: 16px; color: #333; margin-bottom: 15px;">
-              Dear ${name} ${surname},
-            </p>
+          Dear ${name} ${surname},
 
-            <p style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 15px;">
-              Your parent account has been successfully created for <strong>${schoolName}</strong>.
-              A student record for <strong>${studentName} ${studentSurname}</strong> has been created and is now associated with your account.
-            </p>
+          Your parent account has been successfully created for ${schoolName}.
+          A student record for ${studentName} ${studentSurname} has been created and is now associated with your account.
 
-            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #007bff;">
-              <h3 style="margin: 0 0 10px 0; color: #333; font-size: 16px;">Your Login Credentials</h3>
-              <p style="margin: 5px 0; font-size: 14px; color: #333;">
-                <strong>Email:</strong> ${email}
-              </p>
-              <p style="margin: 5px 0; font-size: 14px; color: #333;">
-                <strong>Temporary Password:</strong> <code style="background-color: #e9ecef; padding: 2px 6px; border-radius: 3px; font-family: monospace;">${generatedPassword}</code>
-              </p>
-            </div>
+          Your Login Credentials:
+          Email: ${email}
+          Temporary Password: ${generatedPassword}
 
-            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 6px; margin: 20px 0;">
-              <p style="margin: 0; font-size: 14px; color: #856404;">
-                <strong>⚠️ Important:</strong> Please change your password after your first login for security purposes.
-              </p>
-            </div>
+          IMPORTANT: Please change your password after your first login for security purposes.
 
-            <p style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 15px;">
-              You can now log in to the EduTrack platform to:
-            </p>
+          You can now log in to the EduTrack platform to view your child's academic progress, attendance records, assignments, results, and receive important notifications.
 
-            <ul style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 20px;">
-              <li>View your child's academic progress</li>
-              <li>Access attendance records</li>
-              <li>Review assignments and results</li>
-              <li>Receive important notifications</li>
-              <li>Communicate with teachers</li>
-            </ul>
 
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.FRONTEND_URL || 'https://edutrack.com/login'}"
-                 style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                Login to EduTrack
-              </a>
-            </div>
+          If you have any questions, please contact your school's administration.
+          This is an automated message, please do not reply to this email.
+        `,
+      };
 
-            <p style="font-size: 12px; color: #999; text-align: center; margin-top: 30px; border-top: 1px solid #e9ecef; padding-top: 20px;">
-              If you have any questions, please contact your school's administration.<br>
-              This is an automated message, please do not reply to this email.
-            </p>
-          </div>
-        </div>
-      `,
-      text: `
-        Welcome to EduTrack!
+      const info = await transporter.sendMail(mailOptions);
+      logger.info('Parent welcome email sent successfully', {
+        email,
+        messageId: info.messageId,
+        parentName: `${name} ${surname}`,
+        studentName: `${studentName} ${studentSurname}`
+      });
 
-        Dear ${name} ${surname},
-
-        Your parent account has been successfully created for ${schoolName}.
-        A student record for ${studentName} ${studentSurname} has been created and is now associated with your account.
-
-        Your Login Credentials:
-        Email: ${email}
-        Temporary Password: ${generatedPassword}
-
-        IMPORTANT: Please change your password after your first login for security purposes.
-
-        You can now log in to the EduTrack platform to view your child's academic progress, attendance records, assignments, results, and receive important notifications.
-
-        Login at: ${process.env.FRONTEND_URL || 'https://edutrack.com/login'}
-
-        If you have any questions, please contact your school's administration.
-        This is an automated message, please do not reply to this email.
-      `,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    logger.info('Parent welcome email sent successfully', {
-      email,
-      messageId: info.messageId,
-      parentName: `${name} ${surname}`,
-      studentName: `${studentName} ${studentSurname}`
+      return info;
     });
 
     return true;
   } catch (error) {
-    logger.error('Failed to send parent welcome email', {
+    logger.error('Failed to send parent welcome email after retries', {
       email,
       error: error instanceof Error ? error.message : 'Unknown error',
       parentName: `${name} ${surname}`,
@@ -224,12 +280,7 @@ export const sendTeacherWelcomeEmail = async (
               <li>Access curriculum materials and resources</li>
             </ul>
 
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.FRONTEND_URL || 'https://edutrack.com/login'}"
-                 style="background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                Login to EduTrack
-              </a>
-            </div>
+          
 
             <p style="font-size: 12px; color: #999; text-align: center; margin-top: 30px; border-top: 1px solid #e9ecef; padding-top: 20px;">
               If you have any questions, please contact your school administration.<br>
@@ -254,7 +305,6 @@ export const sendTeacherWelcomeEmail = async (
 
         As a teacher, you can now access your class schedules, create assignments, record attendance, communicate with parents, and access curriculum resources.
 
-        Login at: ${process.env.FRONTEND_URL || 'https://edutrack.com/login'}
 
         If you have any questions, please contact your school administration.
         This is an automated message, please do not reply to this email.

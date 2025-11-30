@@ -73,8 +73,8 @@ declare global {
 export const authMiddleware =
   (requiredRoles: string[]) => async (req: AuthRequest, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(" ")[1]
-    if (!token) {
-      logger.warn("No token provided", { path: req.path })
+    if (!token || token === "null") {
+      logger.warn("No token provided", { path: req.originalUrl })
       return res.status(401).json({ message: "No token provided" })
     }
 
@@ -90,7 +90,7 @@ export const authMiddleware =
         logger.warn("Insufficient permissions", {
           userId: decoded.id,
           role: decoded.role,
-          path: req.path,
+          path: req.originalUrl,
         })
         return res.status(403).json({ message: "Insufficient permissions" })
       }
@@ -124,7 +124,7 @@ export const authMiddleware =
       req.user = decoded
       next()
     } catch (error) {
-      logger.error("Invalid token", { error, path: req.path })
+      logger.error("Invalid token", { error, path: req.originalUrl })
       return res.status(401).json({ message: "Invalid token" })
     }
   }

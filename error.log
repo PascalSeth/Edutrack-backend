@@ -286,3 +286,52 @@
 {"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"School","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve super admin dashboard","timestamp":"2025-09-23T07:44:48.215Z"}
 {"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"School","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve super admin dashboard","timestamp":"2025-09-23T07:44:58.420Z"}
 {"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Payment","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve super admin dashboard","timestamp":"2025-09-23T07:45:30.999Z"}
+{"adminName":"Pascal Seth","email":"pascalelikem@gmail.com","error":"Unexpected socket close","level":"error","message":"Failed to send school admin welcome email","schoolName":"Greenwood Elementary School","timestamp":"2025-11-16T05:41:50.227Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T05:50:28.976Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:00:10.745Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:02:32.651Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:07:15.980Z"}
+{"adminName":"test user","email":"test1@gmail.com","error":"Unexpected socket close","level":"error","message":"Failed to send school admin welcome email","schoolName":"Valley View","timestamp":"2025-11-16T06:10:00.532Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:14:07.304Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:14:07.422Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:14:07.489Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:14:14.653Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:14:15.189Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:14:15.519Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:14:25.700Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:14:25.716Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:16:01.840Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:16:02.498Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:16:02.659Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:16:20.257Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:17:26.166Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:17:26.219Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:17:26.236Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:18:36.488Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:18:36.511Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:18:36.521Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:30:10.594Z"}
+{"email":"pascalelik@gmail.com","error":"Unexpected socket close","level":"error","message":"Failed to send teacher welcome email","schoolName":"Greenwood Elementary School","teacherName":"Pascal Seth","timestamp":"2025-11-16T06:37:01.277Z"}
+{"adminName":"Yaw Danso","email":"rayhealthcareafrica@gmail.com","error":"Unexpected socket close","level":"error","message":"Failed to send school admin welcome email","schoolName":"Greenwood Elementary School","timestamp":"2025-11-16T06:49:46.764Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:51:55.573Z"}
+{"error":{"message":"jwt malformed","name":"JsonWebTokenError"},"level":"error","message":"Invalid token","path":"/","timestamp":"2025-11-16T06:52:08.630Z"}
+{"error":{},"level":"error","message":"Failed to create teacher","timestamp":"2025-11-16T07:02:51.767Z"}
+{"error":{},"level":"error","message":"Failed to create teacher","timestamp":"2025-11-16T07:03:14.796Z"}
+{"email":"pascalelikem@gmail.com","error":"Unexpected socket close","level":"error","message":"Failed to send teacher welcome email","schoolName":"Greenwood Elementary School","teacherName":"Pascal Seth","timestamp":"2025-11-16T07:04:24.532Z"}
+{"error":{"expiredAt":"2025-11-16T07:31:09.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/api/subjects","timestamp":"2025-11-16T10:07:04.856Z"}
+{"error":{"expiredAt":"2025-11-16T07:31:09.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/api/grades","timestamp":"2025-11-16T10:07:04.979Z"}
+{"error":{"expiredAt":"2025-11-16T07:31:09.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/api/students","timestamp":"2025-11-16T10:07:05.035Z"}
+{"error":{"expiredAt":"2025-11-16T07:31:09.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/api/curriculum","timestamp":"2025-11-16T10:07:05.221Z"}
+{"error":{"expiredAt":"2025-11-17T06:25:02.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/api/curriculum/subjects","timestamp":"2025-11-17T06:44:03.939Z"}
+{"error":{"expiredAt":"2025-11-17T06:25:02.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/api/academic-calendar/terms","timestamp":"2025-11-17T11:22:48.377Z"}
+{"error":{"expiredAt":"2025-11-17T06:25:02.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/api/academic-calendar/terms","timestamp":"2025-11-17T11:22:48.807Z"}
+{"error":{"expiredAt":"2025-11-17T06:25:02.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/api/dashboard/super-admin","timestamp":"2025-11-28T08:03:57.740Z"}
+{"error":{"expiredAt":"2025-11-17T06:25:02.000Z","message":"jwt expired","name":"TokenExpiredError"},"level":"error","message":"Invalid token","path":"/api/dashboard/super-admin","timestamp":"2025-11-28T08:03:57.856Z"}
+{"error":{"clientVersion":"6.10.1","name":"PrismaClientInitializationError"},"level":"error","message":"Failed to login","timestamp":"2025-11-28T08:04:11.651Z"}
+{"error":{"clientVersion":"6.10.1","name":"PrismaClientInitializationError"},"level":"error","message":"Failed to login","timestamp":"2025-11-28T08:07:03.608Z"}
+{"error":{"clientVersion":"6.10.1","name":"PrismaClientInitializationError"},"level":"error","message":"Failed to login","timestamp":"2025-11-28T08:07:11.634Z"}
+{"error":{"clientVersion":"6.10.1","code":"P2024","meta":{"connection_limit":1,"modelName":"Class","timeout":10},"name":"PrismaClientKnownRequestError"},"level":"error","message":"Failed to retrieve classes","timestamp":"2025-11-28T08:17:00.427Z"}
+{"email":"mystly19@gmail.com","error":"Unexpected socket close","level":"error","message":"Failed to send parent welcome email","parentName":"Papa Kofi","studentName":"Pascal Seth","timestamp":"2025-11-28T08:18:59.686Z"}
+{"error":"Connection closed","level":"error","message":"Email service connection failed","timestamp":"2025-11-28T08:30:28.031Z"}
+{"error":"Connection closed","level":"error","message":"Email service connection failed","timestamp":"2025-11-28T08:53:07.936Z"}
+{"email":"pascalelikem@gmail.com","error":"connect EHOSTUNREACH 142.251.168.108:587","level":"error","message":"Failed to send parent welcome email after retries","parentName":"Test User","studentName":"Test Student","timestamp":"2025-11-28T09:51:08.739Z"}

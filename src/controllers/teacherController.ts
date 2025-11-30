@@ -10,6 +10,7 @@ import {
   hashPassword,
 } from "../utils/setup"
 import { sendTeacherWelcomeEmail, generatePassword } from "../utils/emailService"
+import { supabase } from "../config/supabase"
 
 // Validation Schemas
 const createTeacherSchema = z.object({
@@ -24,7 +25,6 @@ const createTeacherSchema = z.object({
   // Optional teacher-specific fields
   bloodType: z.string().optional(),
   sex: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
-  profileImageUrl: z.string().url().optional(),
   birthday: z.string().datetime().optional(),
   bio: z.string().optional(),
   qualifications: z.string().optional(),
@@ -275,7 +275,7 @@ export const getTeacherById = async (req: AuthRequest, res: Response) => {
 export const createTeacher = async (req: AuthRequest, res: Response) => {
   try {
     const data = createTeacherSchema.parse(req.body)
-    const { email, password, name, surname, username, schoolId, profileImageUrl, ...teacherDetails } = data
+    const { email, password, name, surname, username, schoolId, ...teacherDetails } = data
 
     // For non-SUPER_ADMIN users, use their assigned school and ignore the provided schoolId
     let assignedSchoolId: string;
@@ -319,7 +319,6 @@ export const createTeacher = async (req: AuthRequest, res: Response) => {
           surname,
           username,
           role: "TEACHER",
-          profileImageUrl: profileImageUrl || null,
         },
       })
 
@@ -376,6 +375,61 @@ export const createTeacher = async (req: AuthRequest, res: Response) => {
         error: emailError instanceof Error ? emailError.message : 'Unknown error',
       })
       // Don't fail the registration if email fails
+    }
+
+    // Handle profile image upload if provided
+    if (req.file) {
+      try {
+        // Upload profile image directly to Supabase
+        const { data: imageData, error: uploadError } = await supabase.storage
+          .from("school-documents")
+          .upload(`/profile-images/${req.file.originalname}-${Date.now()}`, req.file.buffer, {
+            cacheControl: "2592000",
+            contentType: req.file.mimetype,
+          })
+
+        if (uploadError) {
+          throw new Error(uploadError.message)
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage.from("school-documents").getPublicUrl(imageData.path)
+
+        // Update user with new profile image URL
+        await prisma.user.update({
+          where: { id: teacher.id },
+          data: {
+            profileImageUrl: urlData.publicUrl,
+          },
+        })
+
+        // Save file record to database
+        await prisma.fileStorage.create({
+          data: {
+            fileName: imageData.path.split("/").pop() || req.file.originalname,
+            originalName: req.file.originalname,
+            fileSize: req.file.size,
+            mimeType: req.file.mimetype,
+            fileUrl: urlData.publicUrl,
+            bucketName: "school-documents",
+            uploadedById: req.user!.id,
+            schoolId: assignedSchoolId,
+            fileCategory: "PROFILE_IMAGE",
+          },
+        })
+
+        logger.info("Teacher profile image uploaded during creation", {
+          userId: req.user?.id,
+          teacherId: teacher.id,
+          profileImageUrl: urlData.publicUrl,
+        })
+      } catch (imageError) {
+        logger.error("Failed to upload teacher profile image during creation", {
+          teacherId: teacher.id,
+          error: imageError instanceof Error ? imageError.message : 'Unknown error',
+        })
+        // Don't fail the registration if image upload fails
+      }
     }
 
     logger.info("Teacher created", { userId: req.user?.id, userRole: req.user?.role, teacherId: teacher.id, schoolId: assignedSchoolId })

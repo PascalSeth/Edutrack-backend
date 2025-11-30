@@ -197,6 +197,9 @@ approvedReportCards ReportCard[] @relation("ReportCardApprover")
 campusId        String?
 campus          Campus?   @relation("PrincipalCampus", fields: [campusId], references: [id])
 
+createdAt       DateTime  @default(now())
+updatedAt       DateTime  @updatedAt
+
 Event Event[]
 }
 
@@ -235,6 +238,9 @@ gradedResults   Result[]        @relation("ResultGrader")
 // NEW: Campus assignment
 campusId        String?
 campus          Campus?   @relation("TeacherCampus", fields: [campusId], references: [id])
+
+createdAt       DateTime  @default(now())
+updatedAt       DateTime  @updatedAt
 }
 
 // Enhanced Parent model - removed school constraint to allow multi-school children
@@ -261,6 +267,9 @@ model Parent {
 
   // Parent subscription for service access
   subscriptions   ParentSubscription[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 // Parent Subscription for service access

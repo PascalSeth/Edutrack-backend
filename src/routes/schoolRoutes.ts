@@ -26,7 +26,7 @@ router.get('/:id', authMiddleware(['SUPER_ADMIN','SCHOOL_ADMIN', 'PRINCIPAL', 'T
 router.get('/:id/stats', authMiddleware(['SUPER_ADMIN', 'PRINCIPAL', 'TEACHER', 'PARENT']), getSchoolStats);
 
 // Create school (SUPER_ADMIN only)
-router.post('/', authMiddleware(['SUPER_ADMIN']), registerSchool);
+router.post('/', authMiddleware(['SUPER_ADMIN']), upload.single('logo'), registerSchool);
 
 // Update school (SUPER_ADMIN only)
 router.put('/:id', authMiddleware(['SUPER_ADMIN','SCHOOL_ADMIN']), updateSchool);
