@@ -368,36 +368,21 @@ export const login = async (req: AuthRequest, res: Response) => {
       data: { lastLogin: new Date() },
     })
 
-    // For parents, get summary of their children across schools
-    let childrenSummary = null
+    // For parents, get their children across schools
+    let children = null
     if (user.role === "PARENT") {
-      const children = await prisma.student.findMany({
+      children = await prisma.student.findMany({
         where: {
-          parents: {
-            some: { parentId: user.id }
-          }
+          OR: [
+            { parentId: user.id }, // Legacy relationship
+            { parents: { some: { parentId: user.id } } } // New StudentParent relationship
+          ]
         },
         include: {
           school: { select: { id: true, name: true } },
+          class: { select: { id: true, name: true } },
         },
       })
-
-      const schoolsMap = new Map()
-      children.forEach((child) => {
-        if (!schoolsMap.has(child.school.id)) {
-          schoolsMap.set(child.school.id, {
-            school: child.school,
-            childrenCount: 0,
-          })
-        }
-        schoolsMap.get(child.school.id).childrenCount++
-      })
-
-      childrenSummary = {
-        totalChildren: children.length,
-        schoolsCount: schoolsMap.size,
-        schools: Array.from(schoolsMap.values()),
-      }
     }
 
     logger.info("User logged in", {
@@ -410,7 +395,7 @@ export const login = async (req: AuthRequest, res: Response) => {
 
     res.status(200).json({
       message: "Login successful",
-   user: {
+      user: {
         id: user.id,
         email: user.email,
         name: user.name,
@@ -420,8 +405,8 @@ export const login = async (req: AuthRequest, res: Response) => {
         profileImageUrl: user.profileImageUrl,
         isSuperAdmin: user.role === "SUPER_ADMIN",
         isParent: user.role === "PARENT",
-        ...(childrenSummary && { childrenSummary }),
       },
+      ...(children && { children }),
       school: school ? {
         id: school.id,
         name: school.name,

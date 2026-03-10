@@ -95,8 +95,7 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
         ...getTenantFilter(req.user),
         OR: [
           { parentId: req.user.id }, // Legacy relationship
-          // TODO: Add StudentParent relationship check once Prisma client is regenerated
-          // { parents: { some: { parentId: req.user.id } } }
+          { parents: { some: { parentId: req.user.id } } } // New StudentParent relationship
         ]
       }
     } else if (req.user?.role === "TEACHER") {
@@ -621,8 +620,7 @@ export const updateStudent = async (req: AuthRequest, res: Response) => {
         ...getTenantFilter(req.user),
         OR: [
           { parentId: req.user.id }, // Legacy relationship
-          // TODO: Add StudentParent relationship check once Prisma client is regenerated
-          // { parents: { some: { parentId: req.user.id } } }
+          { parents: { some: { parentId: req.user.id } } } // New StudentParent relationship
         ]
       }
       // Parents can't update verification status

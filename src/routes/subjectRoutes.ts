@@ -13,10 +13,10 @@ import { authMiddleware } from "../utils/setup"
 const router = Router()
 
 // Get all subjects
-router.get("/", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"]), getSubjects)
+router.get("/", authMiddleware(["SUPER_ADMIN","SCHOOL_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"]), getSubjects)
 
 // Get subject by ID
-router.get("/:id", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"]), getSubjectById)
+router.get("/:id", authMiddleware(["SUPER_ADMIN","SCHOOL_ADMIN", "PRINCIPAL", "TEACHER", "PARENT"]), getSubjectById)
 
 // Create subject (principals and school admins only)
 router.post("/", authMiddleware(["SUPER_ADMIN", "PRINCIPAL", "SCHOOL_ADMIN"]), createSubject)
